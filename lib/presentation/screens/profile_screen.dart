@@ -24,6 +24,8 @@ class ProfileScreen extends StatelessWidget {
         } else {
           await AppwriteService().uploadProfileImage(user.$id, image.path);
         }
+        // Fetch updated user profile data
+        await _userController.fetchUserProfile(user.$id);
       }
     }
   }
@@ -43,41 +45,90 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: userProfile == null
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Profile Information",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      body: Obx(() {
+        final userProfile = _userController.getUserProfile();
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: userProfile == null
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: _pickAndUploadImage,
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundImage: userProfile.data['photoUrl'] != null
+                              ? NetworkImage(userProfile.data['photoUrl'])
+                              : AssetImage('assets/images/ngo_logo.png')
+                                  as ImageProvider,
+                          backgroundColor: Colors.grey[200],
+                          child: userProfile.data['photoUrl'] == null
+                              ? Icon(Icons.camera_alt, color: Colors.grey)
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(userProfile.data['name'] ?? "User Name",
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent)),
+                      const SizedBox(height: 8),
+                      Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildInfoRow(Icons.email, 'Email',
+                                  userProfile.data['email'] ?? "Not specified"),
+                              _buildInfoRow(Icons.phone, 'Phone',
+                                  userProfile.data['phone'] ?? "Not specified"),
+                              _buildInfoRow(Icons.cake, 'Date of Birth',
+                                  userProfile.data['dob'] ?? "Not specified"),
+                              _buildInfoRow(
+                                  Icons.person,
+                                  'User Type',
+                                  userProfile.data['userType'] ??
+                                      "Not specified"),
+                              _buildInfoRow(
+                                  Icons.message,
+                                  'Preferred Communication',
+                                  userProfile.data['preferredCommunication'] ??
+                                      "Not specified"),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _pickAndUploadImage,
+                        child: const Text("Upload Profile Image"),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  Text("Name: ${userProfile.data['name'] ?? 'N/A'}"),
-                  const SizedBox(height: 10),
-                  Text("Email: ${userProfile.data['email'] ?? 'N/A'}"),
-                  const SizedBox(height: 10),
-                  Text("Phone: ${userProfile.data['phone'] ?? 'N/A'}"),
-                  const SizedBox(height: 10),
-                  Text("Date of Birth: ${userProfile.data['dob'] ?? 'N/A'}"),
-                  const SizedBox(height: 10),
-                  Text("User Type: ${userProfile.data['userType'] ?? 'N/A'}"),
-                  const SizedBox(height: 10),
-                  Text(
-                      "Preferred Communication: ${userProfile.data['preferredCommunication'] ?? 'N/A'}"),
-                  const SizedBox(height: 10),
-                  userProfile.data['photoUrl'] != null
-                      ? Image.network(userProfile.data['photoUrl'])
-                      : const Text("No profile image"),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _pickAndUploadImage,
-                    child: const Text("Upload Profile Image"),
-                  ),
-                ],
-              ),
+                ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.blueAccent, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Text('$title: $value',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
+        ],
       ),
     );
   }

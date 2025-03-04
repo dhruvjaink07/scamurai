@@ -7,7 +7,7 @@ import 'dart:convert';
 
 class UserController extends GetxController {
   var user = Rxn<User>();
-  Document? _userProfile;
+  var userProfile = Rxn<Document>();
   final AuthService _authService = AuthService();
 
   @override
@@ -44,16 +44,14 @@ class UserController extends GetxController {
     user.value = null;
   }
 
-  Document? getUserProfile() => _userProfile;
+  Document? getUserProfile() => userProfile.value;
 
   void setUserProfile(Document userProfile) {
-    _userProfile = userProfile;
-    update();
+    this.userProfile.value = userProfile;
   }
 
   void clearUserProfile() {
-    _userProfile = null;
-    update();
+    userProfile.value = null;
   }
 
   Future<void> fetchUserProfile(String userId) async {

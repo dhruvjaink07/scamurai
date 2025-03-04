@@ -5,6 +5,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'auth_service.dart';
+import 'package:scamurai/state_management/user_controller.dart';
+import 'package:get/get.dart';
 
 class AppwriteService {
   final Client client = Client();
@@ -80,13 +82,16 @@ class AppwriteService {
         bucketId: bucketId,
         fileId: ID.unique(),
         file: inputFile,
-        permissions: [], // Add appropriate permissions if needed
       );
 
       String photoUrl =
           'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/${response.$id}/view?project=${dotenv.env['PROJECT_ID']}';
 
       await updateUserDocument(userId, photoUrl);
+
+      // Fetch updated user profile data
+      final UserController _userController = Get.find<UserController>();
+      await _userController.fetchUserProfile(userId);
 
       print("Profile image uploaded successfully");
     } catch (e) {
@@ -106,7 +111,6 @@ class AppwriteService {
         data: {
           "photoUrl": photoUrl,
         },
-        permissions: [], // Add appropriate permissions if needed
       );
       print(result);
       print("User document updated with photoUrl successfully");
