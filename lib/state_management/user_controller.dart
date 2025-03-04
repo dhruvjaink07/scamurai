@@ -1,10 +1,14 @@
 import 'package:get/get.dart';
+import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:scamurai/data/services/auth_service.dart';
 import 'dart:convert';
 
 class UserController extends GetxController {
   var user = Rxn<User>();
+  Document? _userProfile;
+  final AuthService _authService = AuthService();
 
   @override
   void onInit() {
@@ -38,5 +42,26 @@ class UserController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove('user');
     user.value = null;
+  }
+
+  Document? getUserProfile() => _userProfile;
+
+  void setUserProfile(Document userProfile) {
+    _userProfile = userProfile;
+    update();
+  }
+
+  void clearUserProfile() {
+    _userProfile = null;
+    update();
+  }
+
+  Future<void> fetchUserProfile(String userId) async {
+    try {
+      final userProfile = await _authService.getUserProfile(userId);
+      setUserProfile(userProfile);
+    } catch (e) {
+      print("Error fetching user profile: $e");
+    }
   }
 }

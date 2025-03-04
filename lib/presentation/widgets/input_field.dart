@@ -6,15 +6,16 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String? errorText;
   final String? Function(String?)? validator;
+  final bool enabled;
 
-  const CustomTextField({
-    super.key,
-    required this.hintText,
-    this.obscureText = false,
-    required this.controller,
-    this.errorText,
-    this.validator,
-  });
+  const CustomTextField(
+      {super.key,
+      required this.hintText,
+      this.obscureText = false,
+      required this.controller,
+      this.errorText,
+      this.validator,
+      this.enabled = true});
 
   @override
   _CustomTextFieldState createState() => _CustomTextFieldState();
@@ -34,6 +35,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     return TextFormField(
       controller: widget.controller,
       obscureText: _obscureText,
+      enabled: widget.enabled,
       validator: widget.validator,
       decoration: InputDecoration(
         hintText: widget.hintText,

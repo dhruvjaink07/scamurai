@@ -5,12 +5,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AuthService {
   late Client _client;
   late Account _account;
+  late Databases _database;
 
   AuthService() {
     _client = Client();
-    _client.setProject(dotenv.env['PROJECT_ID']!); // Your project ID
+    _client
+        .setEndpoint("https://cloud.appwrite.io/v1")
+        .setProject(dotenv.env['PROJECT_ID']!); // Your project ID
 
     _account = Account(_client);
+    _database = Databases(_client);
   }
 
   Future<User> register({
@@ -43,7 +47,32 @@ class AuthService {
     return user;
   }
 
+  Future<Document> getUserProfile(String userId) async {
+    String databaseId = dotenv.env['DATABASE_ID']!;
+    String userCollectionId = dotenv.env['USER_COLLECTION_ID']!;
+    final document = await _database.getDocument(
+      databaseId: databaseId,
+      collectionId: userCollectionId,
+      documentId: userId,
+    );
+    return document;
+  }
+
   Future<void> logout() async {
     await _account.deleteSession(sessionId: 'current');
+  }
+
+  Future<String> getJWT() async {
+    final jwt = await _account.createJWT();
+    return jwt.jwt;
+  }
+
+  Future<User?> getCurrentUser() async {
+    try {
+      return await _account.get();
+    } catch (e) {
+      print("User is not authenticated: $e");
+      return null;
+    }
   }
 }

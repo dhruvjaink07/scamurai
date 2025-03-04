@@ -17,15 +17,21 @@ class HomeScreen extends StatelessWidget {
     final AuthService _authService = AuthService();
     bool isWeb = MediaQuery.of(context).size.width > 600;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (user != null) {
+        _userController.fetchUserProfile(user.$id);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Scamurai"),
         actions: [
           IconButton(
-              onPressed: () async {
-                await _authService.logout();
-                _userController.clearUser();
-                Get.offAllNamed(AppRoutes.loginScreen);
+              onPressed: () {
+                // await _authService.logout();
+                // _userController.clearUserProfile();
+                Get.offAllNamed(AppRoutes.profileScreen);
               },
               icon: const Icon(Icons.notifications)),
         ],

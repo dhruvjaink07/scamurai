@@ -66,7 +66,7 @@ class LoginForm extends StatelessWidget {
         _userController.setUser(user);
 
         // Navigate to the home screen
-        Get.toNamed(AppRoutes.homeScreen);
+        Get.offAllNamed(AppRoutes.homeScreen);
       } catch (e) {
         // Handle login error
         print(e);
