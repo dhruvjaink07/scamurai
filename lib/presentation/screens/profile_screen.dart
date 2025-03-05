@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:scamurai/data/services/appwrite_service.dart';
+import 'package:scamurai/data/services/auth_service.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -37,11 +38,16 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
+        ),
         title: const Text("Profile"),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => Get.toNamed('/profile-setup'),
+            onPressed: () =>
+                Get.toNamed('/profile-setup', arguments: {'update': true}),
           ),
         ],
       ),
@@ -61,17 +67,17 @@ class ProfileScreen extends StatelessWidget {
                           radius: 50,
                           backgroundImage: userProfile.data['photoUrl'] != null
                               ? NetworkImage(userProfile.data['photoUrl'])
-                              : AssetImage('assets/images/ngo_logo.png')
+                              : const AssetImage('assets/images/ngo_logo.png')
                                   as ImageProvider,
                           backgroundColor: Colors.grey[200],
                           child: userProfile.data['photoUrl'] == null
-                              ? Icon(Icons.camera_alt, color: Colors.grey)
+                              ? const Icon(Icons.camera_alt, color: Colors.grey)
                               : null,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(userProfile.data['name'] ?? "User Name",
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: Colors.blueAccent)),
@@ -105,16 +111,25 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _pickAndUploadImage,
-                        child: const Text("Upload Profile Image"),
-                      ),
                     ],
                   ),
                 ),
         );
       }),
+      floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: Colors.red,
+          onPressed: () async {
+            await AuthService().logout();
+            UserController().clearUserProfile();
+            Get.offAllNamed('/login');
+          },
+          label: const Row(
+            children: [
+              Icon(Icons.logout, color: Colors.white),
+              SizedBox(width: 8),
+              Text("Logout"),
+            ],
+          )),
     );
   }
 
@@ -127,7 +142,8 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
               child: Text('$title: $value',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w500))),
         ],
       ),
     );

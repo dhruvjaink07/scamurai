@@ -54,15 +54,36 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
+
+  final FocusNode _nameFocusNode = FocusNode();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+  final FocusNode _confirmPasswordFocusNode = FocusNode();
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
   final UserController _userController = Get.find<UserController>();
+
   String? _passwordError;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+
+    _nameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
+    super.dispose();
+  }
 
   void _register() async {
     if (_formKey.currentState?.validate() ?? false) {
@@ -83,7 +104,6 @@ class _RegisterFormState extends State<RegisterForm> {
           _userController.setUser(user);
           Get.toNamed(AppRoutes.profileSetUpScreen);
         } catch (e) {
-          // Handle registration error
           print(e);
         }
       }
@@ -108,17 +128,22 @@ class _RegisterFormState extends State<RegisterForm> {
             CustomTextField(
               hintText: "Name",
               controller: _nameController,
+              focusNode: _nameFocusNode,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your name';
                 }
                 return null;
               },
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_emailFocusNode);
+              },
             ),
             const SizedBox(height: 10),
             CustomTextField(
               hintText: "Email",
               controller: _emailController,
+              focusNode: _emailFocusNode,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your email';
@@ -128,17 +153,24 @@ class _RegisterFormState extends State<RegisterForm> {
                 }
                 return null;
               },
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_passwordFocusNode);
+              },
             ),
             const SizedBox(height: 10),
             CustomTextField(
               hintText: "Password",
               obscureText: true,
               controller: _passwordController,
+              focusNode: _passwordFocusNode,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your password';
                 }
                 return null;
+              },
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
               },
             ),
             const SizedBox(height: 10),
@@ -146,12 +178,16 @@ class _RegisterFormState extends State<RegisterForm> {
               hintText: "Confirm Password",
               obscureText: true,
               controller: _confirmPasswordController,
+              focusNode: _confirmPasswordFocusNode,
               errorText: _passwordError,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please confirm your password';
                 }
                 return null;
+              },
+              onFieldSubmitted: (_) {
+                _register();
               },
             ),
             const SizedBox(height: 20),

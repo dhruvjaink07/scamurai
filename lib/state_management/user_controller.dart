@@ -14,6 +14,7 @@ class UserController extends GetxController {
   void onInit() {
     super.onInit();
     _loadUserFromPrefs();
+    _loadUserProfileFromPrefs();
   }
 
   void setUser(User newUser) async {
@@ -46,12 +47,36 @@ class UserController extends GetxController {
 
   Document? getUserProfile() => userProfile.value;
 
-  void setUserProfile(Document userProfile) {
+  void setUserProfile(Document userProfile) async {
     this.userProfile.value = userProfile;
+    await _saveUserProfileToPrefs(userProfile);
   }
 
-  void clearUserProfile() {
+  void clearUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('userProfile');
     userProfile.value = null;
+  }
+
+  Future<void> _saveUserProfileToPrefs(Document userProfile) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('userProfile', jsonEncode(userProfile.data));
+  }
+
+  void _loadUserProfileFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userProfileData = prefs.getString('userProfile');
+    if (userProfileData != null) {
+      userProfile.value = Document(
+        $id: user.value?.$id ?? '',
+        $collectionId: '',
+        $databaseId: '',
+        $createdAt: '',
+        $updatedAt: '',
+        $permissions: [],
+        data: jsonDecode(userProfileData),
+      );
+    }
   }
 
   Future<void> fetchUserProfile(String userId) async {

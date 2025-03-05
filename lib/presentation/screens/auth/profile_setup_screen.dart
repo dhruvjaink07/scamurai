@@ -24,6 +24,25 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     "SMS",
     "In-App Notifications"
   ];
+  bool isUpdateMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final UserController _userController = Get.find<UserController>();
+    final userProfile = _userController.getUserProfile();
+    if (userProfile != null) {
+      isUpdateMode = Get.arguments['update'] ?? false;
+      if (isUpdateMode) {
+        phoneController.text = userProfile.data['phone'] ?? '';
+        dobController.text = userProfile.data['dob'] ?? '';
+        securityAnswerController.text =
+            userProfile.data['securityAnswer'] ?? '';
+        selectedUserType = userProfile.data['userType'];
+        selectedCommunication = userProfile.data['preferredCommunication'];
+      }
+    }
+  }
 
   void submitProfileData({bool isSkipped = false}) async {
     final UserController _userController = Get.find<UserController>();
@@ -38,16 +57,29 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         return;
       }
 
-      await AppwriteService().saveUserDetails(
-        userId: user?.$id ?? '',
-        name: user?.name ?? '',
-        email: user?.email ?? '',
-        phone: phoneController.text,
-        dob: dobController.text,
-        userType: selectedUserType!,
-        securityAnswer: securityAnswerController.text,
-        preferredCommunication: selectedCommunication ?? "Email",
-      );
+      if (isUpdateMode) {
+        await AppwriteService().updateUserDocument(
+          userId: user?.$id ?? '',
+          data: {
+            'phone': phoneController.text,
+            'dob': dobController.text,
+            'userType': selectedUserType!,
+            'securityAnswer': securityAnswerController.text,
+            'preferredCommunication': selectedCommunication ?? "Email",
+          },
+        );
+      } else {
+        await AppwriteService().saveUserDetails(
+          userId: user?.$id ?? '',
+          name: user?.name ?? '',
+          email: user?.email ?? '',
+          phone: phoneController.text,
+          dob: dobController.text,
+          userType: selectedUserType!,
+          securityAnswer: securityAnswerController.text,
+          preferredCommunication: selectedCommunication ?? "Email",
+        );
+      }
     }
 
     Get.offAllNamed('/home'); // Redirect to Home Page
@@ -61,8 +93,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColorDark,
       appBar: AppBar(
-        title: const Text("Complete Your Profile",
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          isUpdateMode ? "Update Your Profile" : "Complete Your Profile",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         elevation: 0,
       ),
@@ -87,7 +121,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   CustomTextField(
                     controller: TextEditingController(text: user?.name ?? ''),
                     hintText: "Name (Required)",
-                    enabled: false,
+                    enable: false,
                   ),
                   const SizedBox(height: 12),
 
@@ -95,7 +129,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   CustomTextField(
                     controller: TextEditingController(text: user?.email ?? ''),
                     hintText: "Email (Required)",
-                    enabled: false,
+                    enable: false,
                   ),
                   const SizedBox(height: 12),
 
@@ -170,23 +204,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             borderRadius: BorderRadius.circular(8)),
                         backgroundColor: Colors.blueAccent,
                       ),
-                      child: const Text("Submit",
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)),
+                      child: Text(
+                        isUpdateMode ? "Update" : "Submit",
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
 
                   // Skip Button
-                  Center(
-                    child: TextButton(
-                      onPressed: () => submitProfileData(isSkipped: true),
-                      child: const Text("Skip for Now",
-                          style: TextStyle(fontSize: 16, color: Colors.blue)),
+                  if (!isUpdateMode)
+                    Center(
+                      child: TextButton(
+                        onPressed: () => submitProfileData(isSkipped: true),
+                        child: const Text("Skip for Now",
+                            style: TextStyle(fontSize: 16, color: Colors.blue)),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

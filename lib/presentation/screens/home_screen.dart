@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 // await _authService.logout();
                 // _userController.clearUserProfile();
-                Get.offAllNamed(AppRoutes.profileScreen);
+                Get.toNamed(AppRoutes.profileScreen);
               },
               icon: const Icon(Icons.notifications)),
         ],

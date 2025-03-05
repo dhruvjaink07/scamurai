@@ -1,9 +1,7 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:scamurai/core/constants.dart';
 import 'auth_service.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 import 'package:get/get.dart';
@@ -17,7 +15,7 @@ class AppwriteService {
   AppwriteService() {
     client
         .setEndpoint('https://cloud.appwrite.io/v1')
-        .setProject(dotenv.env['PROJECT_ID']!);
+        .setProject(AppConstant.PROJECT_ID);
 
     database = Databases(client);
     storage = Storage(client);
@@ -34,8 +32,8 @@ class AppwriteService {
     String preferredCommunication = "Email",
   }) async {
     try {
-      String databaseId = dotenv.env['DATABASE_ID']!;
-      String userCollectionId = dotenv.env['USER_COLLECTION_ID']!;
+      String databaseId = AppConstant.DATABASE_ID;
+      String userCollectionId = AppConstant.USER_COLLECTION_ID;
       print(userId);
 
       var result = await database.createDocument(
@@ -64,7 +62,7 @@ class AppwriteService {
   Future<void> uploadProfileImage(String userId, String filePath,
       {Uint8List? webImage}) async {
     try {
-      String bucketId = dotenv.env['BUCKET_ID']!;
+      String bucketId = AppConstant.BUCKET_ID;
 
       InputFile inputFile;
       if (kIsWeb && webImage != null) {
@@ -85,9 +83,9 @@ class AppwriteService {
       );
 
       String photoUrl =
-          'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/${response.$id}/view?project=${dotenv.env['PROJECT_ID']}';
+          'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/${response.$id}/view?project=${AppConstant.PROJECT_ID}';
 
-      await updateUserDocument(userId, photoUrl);
+      await updateDocumentWithProfile(userId, photoUrl);
 
       // Fetch updated user profile data
       final UserController _userController = Get.find<UserController>();
@@ -99,10 +97,10 @@ class AppwriteService {
     }
   }
 
-  Future<void> updateUserDocument(String userId, String photoUrl) async {
+  Future<void> updateDocumentWithProfile(String userId, String photoUrl) async {
     try {
-      String databaseId = dotenv.env['DATABASE_ID']!;
-      String userCollectionId = dotenv.env['USER_COLLECTION_ID']!;
+      String databaseId = AppConstant.DATABASE_ID;
+      String userCollectionId = AppConstant.USER_COLLECTION_ID;
 
       var result = await database.updateDocument(
         databaseId: databaseId,
@@ -114,6 +112,27 @@ class AppwriteService {
       );
       print(result);
       print("User document updated with photoUrl successfully");
+    } catch (e) {
+      print("Error updating user document: $e");
+    }
+  }
+
+  Future<void> updateUserDocument({
+    required String userId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      String databaseId = AppConstant.DATABASE_ID;
+      String userCollectionId = AppConstant.USER_COLLECTION_ID;
+
+      var result = await database.updateDocument(
+        databaseId: databaseId,
+        collectionId: userCollectionId,
+        documentId: userId,
+        data: data,
+      );
+      print(result);
+      print("User document updated successfully");
     } catch (e) {
       print("Error updating user document: $e");
     }

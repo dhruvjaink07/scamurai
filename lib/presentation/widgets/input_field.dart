@@ -1,60 +1,44 @@
 import 'package:flutter/material.dart';
 
-class CustomTextField extends StatefulWidget {
+class CustomTextField extends StatelessWidget {
   final String hintText;
-  final bool obscureText;
   final TextEditingController controller;
+  final bool obscureText;
+  final bool enable;
   final String? errorText;
   final String? Function(String?)? validator;
-  final bool enabled;
+  final FocusNode? focusNode;
+  final void Function(String)? onFieldSubmitted;
 
-  const CustomTextField(
-      {super.key,
-      required this.hintText,
-      this.obscureText = false,
-      required this.controller,
-      this.errorText,
-      this.validator,
-      this.enabled = true});
-
-  @override
-  _CustomTextFieldState createState() => _CustomTextFieldState();
-}
-
-class _CustomTextFieldState extends State<CustomTextField> {
-  bool _obscureText = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _obscureText = widget.obscureText;
-  }
+  const CustomTextField({
+    super.key,
+    required this.hintText,
+    required this.controller,
+    this.obscureText = false,
+    this.validator,
+    this.enable = true,
+    this.errorText,
+    this.focusNode,
+    this.onFieldSubmitted,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: widget.controller,
-      obscureText: _obscureText,
-      enabled: widget.enabled,
-      validator: widget.validator,
+      enabled: enable,
+      controller: controller,
+      obscureText: obscureText,
+      validator: validator,
+      focusNode: focusNode,
+      onFieldSubmitted: onFieldSubmitted,
       decoration: InputDecoration(
-        hintText: widget.hintText,
-        errorText: widget.errorText,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        hintText: hintText,
+        errorText: errorText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        suffixIcon: widget.obscureText
-            ? IconButton(
-                icon: Icon(
-                  _obscureText ? Icons.visibility : Icons.visibility_off,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscureText = !_obscureText;
-                  });
-                },
-              )
-            : null,
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }

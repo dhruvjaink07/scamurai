@@ -15,7 +15,7 @@ class LoginScreen extends StatelessWidget {
 
     return Scaffold(
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: isWeb
               ? Row(
@@ -44,31 +44,42 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class LoginForm extends StatelessWidget {
-  LoginForm({super.key});
+class LoginForm extends StatefulWidget {
+  const LoginForm({super.key});
+
+  @override
+  _LoginFormState createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<LoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
   final UserController _userController = Get.find<UserController>();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
 
   void _login() async {
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        // Create a session
         await _authService.login(
             email: _emailController.text, password: _passwordController.text);
 
-        // Fetch user details
         final user = await _authService.getUserDetails();
-
-        // Set user details in UserController
         _userController.setUser(user);
 
-        // Navigate to the home screen
         Get.offAllNamed(AppRoutes.homeScreen);
       } catch (e) {
-        // Handle login error
         print(e);
       }
     }
@@ -91,6 +102,7 @@ class LoginForm extends StatelessWidget {
           CustomTextField(
             hintText: "Email",
             controller: _emailController,
+            focusNode: _emailFocusNode,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
@@ -100,17 +112,24 @@ class LoginForm extends StatelessWidget {
               }
               return null;
             },
+            onFieldSubmitted: (_) {
+              FocusScope.of(context).requestFocus(_passwordFocusNode);
+            },
           ),
           const SizedBox(height: 10),
           CustomTextField(
             hintText: "Password",
             obscureText: true,
             controller: _passwordController,
+            focusNode: _passwordFocusNode,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your password';
               }
               return null;
+            },
+            onFieldSubmitted: (_) {
+              _login();
             },
           ),
           const SizedBox(height: 20),

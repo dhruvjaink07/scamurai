@@ -1,6 +1,6 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:scamurai/core/constants.dart';
 
 class AuthService {
   late Client _client;
@@ -11,7 +11,7 @@ class AuthService {
     _client = Client();
     _client
         .setEndpoint("https://cloud.appwrite.io/v1")
-        .setProject(dotenv.env['PROJECT_ID']!); // Your project ID
+        .setProject(AppConstant.PROJECT_ID); // Your project ID
 
     _account = Account(_client);
     _database = Databases(_client);
@@ -48,8 +48,8 @@ class AuthService {
   }
 
   Future<Document> getUserProfile(String userId) async {
-    String databaseId = dotenv.env['DATABASE_ID']!;
-    String userCollectionId = dotenv.env['USER_COLLECTION_ID']!;
+    String databaseId = AppConstant.DATABASE_ID;
+    String userCollectionId = AppConstant.USER_COLLECTION_ID;
     final document = await _database.getDocument(
       databaseId: databaseId,
       collectionId: userCollectionId,
