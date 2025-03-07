@@ -87,4 +87,9 @@ class UserController extends GetxController {
       print("Error fetching user profile: $e");
     }
   }
+
+  // Method to check if the user is logged in
+  bool isLoggedIn() {
+    return user.value != null;
+  }
 }

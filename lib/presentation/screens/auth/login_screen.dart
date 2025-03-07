@@ -59,6 +59,8 @@ class _LoginFormState extends State<LoginForm> {
   final UserController _userController = Get.find<UserController>();
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -69,8 +71,25 @@ class _LoginFormState extends State<LoginForm> {
     super.dispose();
   }
 
+  String _getFriendlyErrorMessage(String error) {
+    if (error.contains('user_invalid_credentials')) {
+      return 'Please check the email and password you entered and try again.';
+    } else if (error.contains('general_argument_invalid')) {
+      return 'Password must be between 8 and 256 characters long.';
+    } else if (error.contains('user_session_already_exists')) {
+      return 'Creation of a session is prohibited when a session is active.';
+    } else {
+      return 'Unknown error occurred. $error';
+    }
+  }
+
   void _login() async {
     if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
       try {
         await _authService.login(
             email: _emailController.text, password: _passwordController.text);
@@ -80,7 +99,14 @@ class _LoginFormState extends State<LoginForm> {
 
         Get.offAllNamed(AppRoutes.homeScreen);
       } catch (e) {
-        print(e);
+        setState(() {
+          _errorMessage = _getFriendlyErrorMessage(e.toString());
+        });
+        print(e.toString());
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -133,7 +159,20 @@ class _LoginFormState extends State<LoginForm> {
             },
           ),
           const SizedBox(height: 20),
-          CustomButton(text: "Login", onPressed: _login),
+          if (_errorMessage != null)
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.red),
+            ),
+          const SizedBox(height: 10),
+          CustomButton(
+            child: _isLoading
+                ? CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  )
+                : Text("Login"),
+            onPressed: _isLoading ? null : _login,
+          ),
           const SizedBox(height: 20),
           Center(
             child: TextButton(

@@ -25,15 +25,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     "In-App Notifications"
   ];
   bool isUpdateMode = false;
+  int _currentStep = 0;
 
   @override
   void initState() {
     super.initState();
     final UserController _userController = Get.find<UserController>();
     final userProfile = _userController.getUserProfile();
-    if (userProfile != null) {
-      isUpdateMode = Get.arguments['update'] ?? false;
-      if (isUpdateMode) {
+    if (Get.arguments != null && Get.arguments['update'] == true) {
+      isUpdateMode = true;
+      if (userProfile != null) {
         phoneController.text = userProfile.data['phone'] ?? '';
         dobController.text = userProfile.data['dob'] ?? '';
         securityAnswerController.text =
@@ -44,42 +45,40 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
   }
 
-  void submitProfileData({bool isSkipped = false}) async {
+  void submitProfileData() async {
     final UserController _userController = Get.find<UserController>();
     final user = _userController.getUser();
 
-    if (!isSkipped) {
-      if (phoneController.text.isEmpty ||
-          dobController.text.isEmpty ||
-          selectedUserType == null) {
-        Get.snackbar("Error", "Please fill all required fields",
-            backgroundColor: Colors.red, colorText: Colors.white);
-        return;
-      }
+    if (phoneController.text.isEmpty ||
+        dobController.text.isEmpty ||
+        selectedUserType == null) {
+      Get.snackbar("Error", "Please fill all required fields",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
 
-      if (isUpdateMode) {
-        await AppwriteService().updateUserDocument(
-          userId: user?.$id ?? '',
-          data: {
-            'phone': phoneController.text,
-            'dob': dobController.text,
-            'userType': selectedUserType!,
-            'securityAnswer': securityAnswerController.text,
-            'preferredCommunication': selectedCommunication ?? "Email",
-          },
-        );
-      } else {
-        await AppwriteService().saveUserDetails(
-          userId: user?.$id ?? '',
-          name: user?.name ?? '',
-          email: user?.email ?? '',
-          phone: phoneController.text,
-          dob: dobController.text,
-          userType: selectedUserType!,
-          securityAnswer: securityAnswerController.text,
-          preferredCommunication: selectedCommunication ?? "Email",
-        );
-      }
+    if (isUpdateMode) {
+      await AppwriteService().updateUserDocument(
+        userId: user?.$id ?? '',
+        data: {
+          'phone': phoneController.text,
+          'dob': dobController.text,
+          'userType': selectedUserType!,
+          'securityAnswer': securityAnswerController.text,
+          'preferredCommunication': selectedCommunication ?? "Email",
+        },
+      );
+    } else {
+      await AppwriteService().saveUserDetails(
+        userId: user?.$id ?? '',
+        name: user?.name ?? '',
+        email: user?.email ?? '',
+        phone: phoneController.text,
+        dob: dobController.text,
+        userType: selectedUserType!,
+        securityAnswer: securityAnswerController.text,
+        preferredCommunication: selectedCommunication ?? "Email",
+      );
     }
 
     Get.offAllNamed('/home'); // Redirect to Home Page
@@ -101,132 +100,158 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         elevation: 0,
       ),
       body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Card(
-            elevation: 5,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Enter your details",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600),
+          padding: const EdgeInsets.all(16.0),
+          child: Stepper(
+            currentStep: _currentStep,
+            onStepContinue: () {
+              if (_currentStep < 1) {
+                setState(() {
+                  _currentStep++;
+                });
+              } else {
+                submitProfileData();
+              }
+            },
+            onStepCancel: () {
+              if (_currentStep > 0) {
+                setState(() {
+                  _currentStep--;
+                });
+              }
+            },
+            steps: [
+              Step(
+                title: const Text('Personal Details'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Enter your details",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20),
 
-                  // Name
-                  CustomTextField(
-                    controller: TextEditingController(text: user?.name ?? ''),
-                    hintText: "Name (Required)",
-                    enable: false,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Email
-                  CustomTextField(
-                    controller: TextEditingController(text: user?.email ?? ''),
-                    hintText: "Email (Required)",
-                    enable: false,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Phone
-                  CustomTextField(
-                      controller: phoneController,
-                      hintText: "Phone Number (Required)"),
-                  const SizedBox(height: 12),
-
-                  // DOB
-                  CustomTextField(
-                      controller: dobController,
-                      hintText: "Date of Birth (Required)"),
-                  const SizedBox(height: 12),
-
-                  // User Type Dropdown
-                  const Text("Select User Type (Required)",
-                      style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 5),
-                  DropdownButtonFormField<String>(
-                    value: selectedUserType,
-                    items: userTypes
-                        .map((type) =>
-                            DropdownMenuItem(value: type, child: Text(type)))
-                        .toList(),
-                    onChanged: (value) =>
-                        setState(() => selectedUserType = value),
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                    // Name
+                    CustomTextField(
+                      controller: TextEditingController(text: user?.name ?? ''),
+                      hintText: "Name (Required)",
+                      enable: false,
                     ),
-                  ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  // Security Answer (Optional)
-                  CustomTextField(
-                      controller: securityAnswerController,
-                      hintText: "Security Question Answer (Optional)"),
-                  const SizedBox(height: 12),
-
-                  // Preferred Communication Method
-                  const Text("Preferred Communication Method (Optional)",
-                      style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 5),
-                  DropdownButtonFormField<String>(
-                    value: selectedCommunication,
-                    items: communicationMethods
-                        .map((method) => DropdownMenuItem(
-                            value: method, child: Text(method)))
-                        .toList(),
-                    onChanged: (value) =>
-                        setState(() => selectedCommunication = value),
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                    // Email
+                    CustomTextField(
+                      controller:
+                          TextEditingController(text: user?.email ?? ''),
+                      hintText: "Email (Required)",
+                      enable: false,
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
-                  // Submit Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => submitProfileData(),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
+                    // Phone
+                    CustomTextField(
+                        controller: phoneController,
+                        hintText: "Phone Number (Required)"),
+                    const SizedBox(height: 12),
+
+                    // DOB
+                    CustomTextField(
+                        controller: dobController,
+                        hintText: "Date of Birth (Required)"),
+                    const SizedBox(height: 12),
+
+                    // User Type Dropdown
+                    const Text("Select User Type (Required)",
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 5),
+                    DropdownButtonFormField<String>(
+                      value: selectedUserType,
+                      items: userTypes
+                          .map((type) =>
+                              DropdownMenuItem(value: type, child: Text(type)))
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => selectedUserType = value),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 12),
+                        border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8)),
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                      child: Text(
-                        isUpdateMode ? "Update" : "Submit",
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Skip Button
-                  if (!isUpdateMode)
-                    Center(
-                      child: TextButton(
-                        onPressed: () => submitProfileData(isSkipped: true),
-                        child: const Text("Skip for Now",
-                            style: TextStyle(fontSize: 16, color: Colors.blue)),
-                      ),
-                    ),
-                ],
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
-            ),
+              Step(
+                title: const Text('Additional Details'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Security Answer (Optional)
+                    CustomTextField(
+                        controller: securityAnswerController,
+                        hintText: "Security Question Answer (Optional)"),
+                    const SizedBox(height: 12),
+
+                    // Preferred Communication Method
+                    const Text("Preferred Communication Method (Optional)",
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 5),
+                    DropdownButtonFormField<String>(
+                      value: selectedCommunication,
+                      items: communicationMethods
+                          .map((method) => DropdownMenuItem(
+                              value: method, child: Text(method)))
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => selectedCommunication = value),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 12),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Submit Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => submitProfileData(),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          backgroundColor: Colors.blueAccent,
+                        ),
+                        child: Text(
+                          isUpdateMode ? "Update" : "Submit",
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Skip Button
+                    if (!isUpdateMode)
+                      Center(
+                        child: TextButton(
+                          onPressed: () => submitProfileData(),
+                          child: const Text("Skip for Now",
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.blue)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

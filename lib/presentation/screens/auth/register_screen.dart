@@ -69,7 +69,9 @@ class _RegisterFormState extends State<RegisterForm> {
   final AuthService _authService = AuthService();
   final UserController _userController = Get.find<UserController>();
 
+  bool _isLoading = false;
   String? _passwordError;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -85,6 +87,16 @@ class _RegisterFormState extends State<RegisterForm> {
     super.dispose();
   }
 
+  String _getFriendlyErrorMessage(String error) {
+    if (error.contains('user_already_exists')) {
+      return 'This email is already in use. Please use a different email.';
+    } else if (error.contains('general_argument_invalid')) {
+      return 'Password must be between 8 and 265 characters long, and should not be one of the commonly used password. ';
+    } else {
+      return 'Unexpected Error: $error';
+    }
+  }
+
   void _register() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_passwordController.text != _confirmPasswordController.text) {
@@ -93,8 +105,11 @@ class _RegisterFormState extends State<RegisterForm> {
         });
       } else {
         setState(() {
+          _isLoading = true;
           _passwordError = null;
+          _errorMessage = null;
         });
+
         try {
           final user = await _authService.register(
             email: _emailController.text,
@@ -104,7 +119,14 @@ class _RegisterFormState extends State<RegisterForm> {
           _userController.setUser(user);
           Get.toNamed(AppRoutes.profileSetUpScreen);
         } catch (e) {
-          print(e);
+          setState(() {
+            _errorMessage = _getFriendlyErrorMessage(e.toString());
+          });
+          print(e.toString());
+        } finally {
+          setState(() {
+            _isLoading = false;
+          });
         }
       }
     }
@@ -191,7 +213,20 @@ class _RegisterFormState extends State<RegisterForm> {
               },
             ),
             const SizedBox(height: 20),
-            CustomButton(text: "Register", onPressed: _register),
+            if (_errorMessage != null)
+              Text(
+                _errorMessage!,
+                style: TextStyle(color: Colors.red),
+              ),
+            const SizedBox(height: 10),
+            CustomButton(
+              child: _isLoading
+                  ? CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    )
+                  : Text("Register"),
+              onPressed: _isLoading ? null : _register,
+            ),
             const SizedBox(height: 20),
             Center(
               child: TextButton(
