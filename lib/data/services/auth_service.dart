@@ -1,6 +1,6 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
-import 'package:scamurai/core/constants.dart';
+import 'package:scamurai/core/app_constants.dart';
 
 class AuthService {
   late Client _client;

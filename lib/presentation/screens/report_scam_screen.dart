@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../widgets/input_field.dart';
+import '../widgets/custom_date_picker.dart';
 
 class ReportScamScreen extends StatefulWidget {
   const ReportScamScreen({super.key});
@@ -13,10 +14,9 @@ class ReportScamScreen extends StatefulWidget {
 class _ReportScamScreenState extends State<ReportScamScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _scamDateController = TextEditingController();
   final TextEditingController _contactInfoController = TextEditingController();
   String? _scamType;
-  DateTime? _scamDate;
+  DateTime? _selectedScamDate;
   List<PlatformFile>? _selectedFiles;
 
   Future<void> _pickFiles() async {
@@ -36,6 +36,12 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
     }
   }
 
+  void _onDateSelected(DateTime date) {
+    setState(() {
+      _selectedScamDate = date;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +56,7 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Scam Type
+                // Scam Type Dropdown
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(labelText: "Scam Type"),
                   items: const [
@@ -76,7 +82,7 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Description
+                // Description Input
                 CustomTextField(
                   hintText: "Description",
                   controller: _descriptionController,
@@ -90,24 +96,14 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Scam Date
-                CustomTextField(
+                // Scam Date Picker (Using Updated CustomDatePicker)
+                CustomDatePicker(
                   hintText: "Date of Scam (YYYY-MM-DD)",
-                  controller: _scamDateController,
-                  keyboardType: TextInputType.datetime,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter the date of the scam";
-                    }
-                    if (DateTime.tryParse(value) == null) {
-                      return "Please enter a valid date";
-                    }
-                    return null;
-                  },
+                  onDateSelected: _onDateSelected,
                 ),
                 const SizedBox(height: 16),
 
-                // Contact Information
+                // Contact Information Input
                 CustomTextField(
                   hintText: "Contact Information",
                   controller: _contactInfoController,
@@ -120,14 +116,14 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // File Upload
+                // File Upload Button
                 ElevatedButton(
                   onPressed: _pickFiles,
                   child: const Text("Upload Files (Max 10MB each)"),
                 ),
                 const SizedBox(height: 16),
 
-                // Display selected files
+                // Display Selected Files
                 if (_selectedFiles != null && _selectedFiles!.isNotEmpty)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,6 +137,10 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      if (_selectedScamDate == null) {
+                        Get.snackbar("Error", "Please select the scam date.");
+                        return;
+                      }
                       // Process the form data
                       Get.snackbar("Success", "Scam reported successfully!");
                     }

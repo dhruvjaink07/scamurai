@@ -1,7 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:scamurai/core/constants.dart';
+import '../../core/app_constants.dart';
 import 'auth_service.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 import 'package:get/get.dart';
