@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:android_intent_plus/android_intent.dart';
@@ -12,6 +13,7 @@ import 'package:scamurai/presentation/screens/website_verifier_screen.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_handler/share_handler.dart';
 import '../widgets/fraud_alert_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/learning_card.dart';
@@ -31,12 +33,38 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _latestLink;
   bool _isInitialized = false; // Ensures we check the link only once.
   bool _isDefaultBrowser = false;
+  StreamSubscription<SharedMedia>? _streamSubscription;
 
   @override
   void initState() {
     super.initState();
     _receiveLinkFromNative();
     _checkIfDefaultBrowser();
+    _handleSharedData();
+  }
+
+  Future<void> _handleSharedData() async {
+    final handler = ShareHandlerPlatform.instance;
+
+    // Get initial shared content when app is opened via sharing intent
+    SharedMedia? initialMedia = await handler.getInitialSharedMedia();
+    if (initialMedia?.content != null) {
+      Get.toNamed(AppRoutes.scamDetection, arguments: initialMedia!.content);
+    }
+
+    // Listen for shared content while app is running
+    _streamSubscription = handler.sharedMediaStream.listen((SharedMedia media) {
+      if (!mounted) return;
+      if (media.content != null) {
+        Get.toNamed(AppRoutes.scamDetection, arguments: media.content);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel(); // Cleanup
+    super.dispose();
   }
 
   /// Receives the link when the app is opened via a link
@@ -135,6 +163,10 @@ class _HomeScreenState extends State<HomeScreen> {
     Get.toNamed(AppRoutes.reportScamScreen);
   }
 
+  void detectScamInText() {
+    Get.toNamed(AppRoutes.scamDetection);
+  }
+
   @override
   Widget build(BuildContext context) {
     final UserController _userController = Get.find<UserController>();
@@ -229,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   QuickActionButton(
                     icon: Icons.lock,
                     label: "Secure Account",
-                    onClick: verifyWebsite,
+                    onClick: detectScamInText,
                   ),
                   QuickActionButton(
                     icon: Icons.book,
