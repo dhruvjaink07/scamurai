@@ -96,7 +96,11 @@ class _LoginFormState extends State<LoginForm> {
 
         final user = await _authService.getUserDetails();
         _userController.setUser(user);
-
+        Get.snackbar(
+          "Success",
+          "Logged in successfully",
+          snackPosition: SnackPosition.BOTTOM,
+        );
         Get.offAllNamed(AppRoutes.homeScreen);
       } catch (e) {
         setState(() {
@@ -129,6 +133,7 @@ class _LoginFormState extends State<LoginForm> {
             hintText: "Email",
             controller: _emailController,
             focusNode: _emailFocusNode,
+            keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';

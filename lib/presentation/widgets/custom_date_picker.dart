@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 class CustomDatePicker extends StatefulWidget {
+  final TextEditingController controller;
   final String hintText;
-  final Function(DateTime) onDateSelected;
+  final String? Function(String?)? validator;
 
   const CustomDatePicker({
     super.key,
+    required this.controller,
     required this.hintText,
-    required this.onDateSelected,
+    this.validator,
   });
 
   @override
@@ -17,49 +19,35 @@ class CustomDatePicker extends StatefulWidget {
 class _CustomDatePickerState extends State<CustomDatePicker> {
   DateTime? _selectedDate;
 
-  Future<void> _pickDate(BuildContext context) async {
-    FocusScope.of(context)
-        .requestFocus(FocusNode()); // 🔥 This prevents the keyboard
+  Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
     );
-
-    if (picked != null) {
+    if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        widget.controller.text = "${picked.toLocal()}".split(' ')[0];
       });
-      widget.onDateSelected(picked);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _pickDate(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
+    return TextFormField(
+      controller: widget.controller,
+      readOnly: true,
+      onTap: () => _selectDate(context),
+      validator: widget.validator,
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              _selectedDate != null
-                  ? "${_selectedDate!.toLocal()}".split(' ')[0]
-                  : widget.hintText,
-              style: TextStyle(
-                fontSize: 16,
-                color: _selectedDate != null ? Colors.black : Colors.grey,
-              ),
-            ),
-            const Icon(Icons.calendar_today, color: Colors.blue),
-          ],
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }

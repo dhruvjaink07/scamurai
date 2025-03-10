@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:scamurai/data/services/appwrite_service.dart';
+import 'package:scamurai/presentation/widgets/custom_date_picker.dart';
 import 'package:scamurai/presentation/widgets/input_field.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 
@@ -80,7 +81,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         preferredCommunication: selectedCommunication ?? "Email",
       );
     }
-
+    Get.snackbar(
+      "Success",
+      "Profile ${isUpdateMode ? 'Updated' : 'Created'} Successfully",
+      snackPosition: SnackPosition.BOTTOM,
+    );
     Get.offAllNamed('/home'); // Redirect to Home Page
   }
 
@@ -151,14 +156,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                     // Phone
                     CustomTextField(
+                        isPhone: true,
+                        keyboardType: TextInputType.phone,
                         controller: phoneController,
                         hintText: "Phone Number (Required)"),
                     const SizedBox(height: 12),
 
                     // DOB
-                    CustomTextField(
-                        controller: dobController,
-                        hintText: "Date of Birth (Required)"),
+                    CustomDatePicker(
+                      hintText: "Date of Birth (Required)",
+                      controller: dobController,
+                    ),
                     const SizedBox(height: 12),
 
                     // User Type Dropdown

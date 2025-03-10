@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
+import '../widgets/custom_date_picker.dart';
 import '../widgets/input_field.dart';
 
 class ReportScamScreen extends StatefulWidget {
@@ -13,11 +15,30 @@ class ReportScamScreen extends StatefulWidget {
 class _ReportScamScreenState extends State<ReportScamScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _scamDateController = TextEditingController();
   final TextEditingController _contactInfoController = TextEditingController();
-  String? _scamType;
-  DateTime? _scamDate;
+  final TextEditingController _scamDateController = TextEditingController();
+  String? scamType;
+  int? _selectedDay;
+  String? _selectedMonth;
+  int? _selectedYear;
   List<PlatformFile>? _selectedFiles;
+
+  final List<int> _days = List<int>.generate(31, (i) => i + 1);
+  final List<String> _months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+  final List<int> _years = List<int>.generate(15, (i) => 2011 + i);
 
   Future<void> _pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
@@ -64,7 +85,7 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                   ],
                   onChanged: (value) {
                     setState(() {
-                      _scamType = value;
+                      scamType = value;
                     });
                   },
                   validator: (value) {
@@ -91,19 +112,14 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 const SizedBox(height: 16),
 
                 // Scam Date
-                CustomTextField(
-                  hintText: "Date of Scam (YYYY-MM-DD)",
+                const Text(
+                  "Date of Scam",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                CustomDatePicker(
+                  hintText: "Date of Birth (Required)",
                   controller: _scamDateController,
-                  keyboardType: TextInputType.datetime,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter the date of the scam";
-                    }
-                    if (DateTime.tryParse(value) == null) {
-                      return "Please enter a valid date";
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16),
 
@@ -111,6 +127,8 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 CustomTextField(
                   hintText: "Contact Information",
                   controller: _contactInfoController,
+                  keyboardType: TextInputType.phone,
+                  isPhone: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Please enter your contact information";
@@ -141,8 +159,8 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Process the form data
-                      Get.snackbar("Success", "Scam reported successfully!");
+                      Get.snackbar("Success",
+                          "Scam reported successfully with date: ${_scamDateController.text}");
                     }
                   },
                   child: const Text("Submit"),

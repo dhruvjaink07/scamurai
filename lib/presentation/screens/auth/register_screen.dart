@@ -117,6 +117,11 @@ class _RegisterFormState extends State<RegisterForm> {
             name: _nameController.text,
           );
           _userController.setUser(user);
+          Get.snackbar(
+            "Success",
+            "Account created successfully! Please complete your profile setup.",
+            snackPosition: SnackPosition.BOTTOM,
+          );
           Get.toNamed(AppRoutes.profileSetUpScreen);
         } catch (e) {
           setState(() {
@@ -166,6 +171,7 @@ class _RegisterFormState extends State<RegisterForm> {
               hintText: "Email",
               controller: _emailController,
               focusNode: _emailFocusNode,
+              keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your email';
