@@ -88,7 +88,8 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
             ElevatedButton(
               onPressed: _verifyMessage,
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8)),
                 backgroundColor: Colors.blueAccent,

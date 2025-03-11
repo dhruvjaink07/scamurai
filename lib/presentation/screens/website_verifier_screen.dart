@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:scamurai/core/app_constants.dart';
 import 'package:scamurai/data/services/link_opener_service.dart';
+import 'package:get/get.dart';
 
 class VerifyWebsiteScreen extends StatefulWidget {
   final String? receivedLink;
@@ -27,17 +28,8 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
     // Implement your website verification logic here
     // For demonstration purposes, we'll assume that any URL containing "safe" is safe
     final url = _urlController.text;
-    // if (url.contains("safe")) {
-    // setState(() {
-    //   _verificationResult = "This website is safe.";
-    // });
     LinkOpenerService()
         .openLinkWithBrowserChooser(url, AppConstant.OPENING_BROWSER);
-    // } else {
-    // setState(() {
-    // _verificationResult = "This website is potentially fraudulent.";
-    // });
-    // }
 
     setState(() {
       _isLoading = false;
@@ -47,8 +39,9 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.receivedLink != null) {
-      _urlController.text = widget.receivedLink!;
+    final receivedLink = Get.arguments as String?;
+    if (receivedLink != null) {
+      _urlController.text = receivedLink;
     }
   }
 

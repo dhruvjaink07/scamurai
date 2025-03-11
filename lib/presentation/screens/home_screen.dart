@@ -26,19 +26,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const platform = MethodChannel(AppConstant.LINK_CHANNEL);
   static const defaultBrowserChannel =
       MethodChannel(AppConstant.BROWSER_CHANNEL);
 
-  String? _latestLink;
-  bool _isInitialized = false; // Ensures we check the link only once.
   bool _isDefaultBrowser = false;
   StreamSubscription<SharedMedia>? _streamSubscription;
+  String? _currentScreen; // Track the current screen
+  bool _isNavigating = false; // Track if navigation is in progress
 
   @override
   void initState() {
     super.initState();
-    _receiveLinkFromNative();
     _checkIfDefaultBrowser();
     _handleSharedData();
   }
@@ -49,23 +47,45 @@ class _HomeScreenState extends State<HomeScreen> {
     // Get initial shared content when app is opened via sharing intent
     SharedMedia? initialMedia = await handler.getInitialSharedMedia();
     if (initialMedia?.content != null) {
-      _navigateBasedOnContent(initialMedia!.content!);
+      _navigateBasedOnContent(initialMedia!.content!, fromLink: false);
     }
 
     // Listen for shared content while app is running
     _streamSubscription = handler.sharedMediaStream.listen((SharedMedia media) {
       if (!mounted) return;
       if (media.content != null) {
-        _navigateBasedOnContent(media.content!);
+        _navigateBasedOnContent(media.content!, fromLink: false);
       }
     });
   }
 
-  void _navigateBasedOnContent(String content) {
+  void _navigateBasedOnContent(String content, {required bool fromLink}) {
+    if (_isNavigating) return; // Prevent multiple navigations
+
+    _isNavigating = true;
+
     if (content.startsWith('http')) {
-      Get.toNamed(AppRoutes.verifyWebsiteScreen, arguments: content);
+      if (_currentScreen != AppRoutes.verifyWebsiteScreen) {
+        Get.toNamed(AppRoutes.verifyWebsiteScreen, arguments: content)
+            ?.then((_) {
+          _isNavigating = false;
+          _currentScreen = null; // Reset current screen after navigation
+        });
+        _currentScreen = AppRoutes.verifyWebsiteScreen;
+      } else {
+        _isNavigating = false;
+      }
     } else {
-      Get.toNamed(AppRoutes.scamDetectionScreen, arguments: content);
+      if (_currentScreen != AppRoutes.scamDetectionScreen) {
+        Get.toNamed(AppRoutes.scamDetectionScreen, arguments: content)
+            ?.then((_) {
+          _isNavigating = false;
+          _currentScreen = null; // Reset current screen after navigation
+        });
+        _currentScreen = AppRoutes.scamDetectionScreen;
+      } else {
+        _isNavigating = false;
+      }
     }
   }
 
@@ -73,18 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _streamSubscription?.cancel(); // Cleanup
     super.dispose();
-  }
-
-  /// Receives the link when the app is opened via a link
-  Future<void> _receiveLinkFromNative() async {
-    platform.setMethodCallHandler((call) async {
-      if (call.method == "receivedLink") {
-        setState(() {
-          _latestLink = call.arguments;
-          _isInitialized = true; // Mark initialization as done
-        });
-      }
-    });
   }
 
   /// Checks if the app is set as the default browser
@@ -151,18 +159,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Opens the received link in an external browser
-  void _openInExternalBrowser() async {
-    if (_latestLink != null && await canLaunchUrl(Uri.parse(_latestLink!))) {
-      await launchUrl(Uri.parse(_latestLink!),
-          mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unable to open the link")),
-      );
-    }
-  }
-
   void verifyWebsite() {
     Get.toNamed(AppRoutes.verifyWebsiteScreen);
   }
@@ -187,25 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
 
-    return Builder(builder: (context) {
-      if (_latestLink != null && _isInitialized) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text("Scamurai"),
-            actions: [
-              IconButton(
-                onPressed: _openInExternalBrowser,
-                icon: const Icon(Icons.open_in_browser),
-                tooltip: "Open in Browser",
-              ),
-            ],
-          ),
-          body: VerifyWebsiteScreen(receivedLink: _latestLink!),
-        );
-      } else {
-        return homeScreen(user, context, isWeb);
-      }
-    });
+    return homeScreen(user, context, isWeb);
   }
 
   Scaffold homeScreen(User? user, BuildContext context, bool isWeb) {
@@ -267,8 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onClick: verifyWebsite,
                   ),
                   QuickActionButton(
-                    icon: Icons.lock,
-                    label: "Secure Account",
+                    icon: Icons.message,
+                    label: "Verify Message",
                     onClick: detectScamInText,
                   ),
                   QuickActionButton(
