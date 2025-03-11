@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:scamurai/data/services/appwrite_service.dart';
+import 'package:scamurai/data/services/appwrite_user_service.dart';
 import 'package:scamurai/data/services/auth_service.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 import 'dart:typed_data';

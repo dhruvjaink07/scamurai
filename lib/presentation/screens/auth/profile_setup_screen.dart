@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:scamurai/data/services/appwrite_service.dart';
+import 'package:scamurai/data/services/appwrite_user_service.dart';
 import 'package:scamurai/presentation/widgets/custom_date_picker.dart';
 import 'package:scamurai/presentation/widgets/input_field.dart';
 import 'package:scamurai/state_management/user_controller.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:scamurai/data/services/appwrite_report_service.dart';
 import '../widgets/custom_date_picker.dart';
 import '../widgets/input_field.dart';
 
@@ -18,42 +18,57 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
   final TextEditingController _contactInfoController = TextEditingController();
   final TextEditingController _scamDateController = TextEditingController();
   String? scamType;
-  int? _selectedDay;
-  String? _selectedMonth;
-  int? _selectedYear;
-  List<PlatformFile>? _selectedFiles;
+  PlatformFile? _selectedFile;
+  bool _isLoading = false;
 
-  final List<int> _days = List<int>.generate(31, (i) => i + 1);
-  final List<String> _months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
-  final List<int> _years = List<int>.generate(15, (i) => 2011 + i);
-
-  Future<void> _pickFiles() async {
+  Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'mp4'],
       withData: true,
     );
 
-    if (result != null) {
+    if (result != null && result.files.isNotEmpty) {
       setState(() {
-        _selectedFiles = result.files
-            .where((file) => file.size <= 10 * 1024 * 1024)
-            .toList(); // Limit to 10MB
+        _selectedFile = result.files.first;
       });
+    }
+  }
+
+  String _formatDate(String date) {
+    final DateTime parsedDate = DateTime.parse(date);
+    return "${parsedDate.day.toString().padLeft(2, '0')}-${parsedDate.month.toString().padLeft(2, '0')}-${parsedDate.year}";
+  }
+
+  Future<void> _submitReport() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final formattedDate = _formatDate(_scamDateController.text);
+      final reportService = AppwriteReportService();
+
+      await reportService.saveReports(
+        userId: "user-id", // Replace with actual user ID
+        scamType: scamType!,
+        description: _descriptionController.text,
+        contact: _contactInfoController.text,
+        scamDate: formattedDate,
+        file: _selectedFile,
+      );
+
+      setState(() {
+        _isLoading = false;
+        _descriptionController.clear();
+        _contactInfoController.clear();
+        _scamDateController.clear();
+        scamType = null;
+        _selectedFile = null;
+      });
+
+      Get.snackbar(
+          "Success", "Scam reported successfully with date: $formattedDate");
     }
   }
 
@@ -118,7 +133,7 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
                 ),
                 const SizedBox(height: 10),
                 CustomDatePicker(
-                  hintText: "Date of Birth (Required)",
+                  hintText: "Date of Scam (Required)",
                   controller: _scamDateController,
                 ),
                 const SizedBox(height: 16),
@@ -140,31 +155,25 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
 
                 // File Upload
                 ElevatedButton(
-                  onPressed: _pickFiles,
-                  child: const Text("Upload Files (Max 10MB each)"),
+                  onPressed: _pickFile,
+                  child: const Text("Upload File (Max 10MB)"),
                 ),
                 const SizedBox(height: 16),
 
-                // Display selected files
-                if (_selectedFiles != null && _selectedFiles!.isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: _selectedFiles!.map((file) {
-                      return Text(file.name);
-                    }).toList(),
-                  ),
+                // Display selected file
+                if (_selectedFile != null) Text(_selectedFile!.name),
                 const SizedBox(height: 16),
 
                 // Submit Button
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Get.snackbar("Success",
-                          "Scam reported successfully with date: ${_scamDateController.text}");
-                    }
-                  },
-                  child: const Text("Submit"),
-                ),
+                _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(Colors.blueAccent),
+                      ))
+                    : ElevatedButton(
+                        onPressed: _submitReport,
+                        child: const Text("Submit"),
+                      ),
               ],
             ),
           ),

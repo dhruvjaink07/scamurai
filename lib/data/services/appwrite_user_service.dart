@@ -10,7 +10,6 @@ class AppwriteService {
   final Client client = Client();
   late Databases database;
   late Storage storage;
-  final AuthService _authService = AuthService();
 
   AppwriteService() {
     client

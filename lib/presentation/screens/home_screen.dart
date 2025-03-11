@@ -49,16 +49,24 @@ class _HomeScreenState extends State<HomeScreen> {
     // Get initial shared content when app is opened via sharing intent
     SharedMedia? initialMedia = await handler.getInitialSharedMedia();
     if (initialMedia?.content != null) {
-      Get.toNamed(AppRoutes.scamDetection, arguments: initialMedia!.content);
+      _navigateBasedOnContent(initialMedia!.content!);
     }
 
     // Listen for shared content while app is running
     _streamSubscription = handler.sharedMediaStream.listen((SharedMedia media) {
       if (!mounted) return;
       if (media.content != null) {
-        Get.toNamed(AppRoutes.scamDetection, arguments: media.content);
+        _navigateBasedOnContent(media.content!);
       }
     });
+  }
+
+  void _navigateBasedOnContent(String content) {
+    if (content.startsWith('http')) {
+      Get.toNamed(AppRoutes.verifyWebsiteScreen, arguments: content);
+    } else {
+      Get.toNamed(AppRoutes.scamDetectionScreen, arguments: content);
+    }
   }
 
   @override
@@ -164,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void detectScamInText() {
-    Get.toNamed(AppRoutes.scamDetection);
+    Get.toNamed(AppRoutes.scamDetectionScreen);
   }
 
   @override
@@ -298,6 +306,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Get.toNamed(AppRoutes.chatbotScreen);
+        },
+        child: const Icon(Icons.chat),
       ),
     );
   }
