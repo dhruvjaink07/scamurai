@@ -22,20 +22,18 @@ class LoginScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Image.asset('assets/images/auth_side_card.png',
-                          height: 300),
+                      child: Image.asset('assets/images/logo.png', height: 300),
                     ),
                     const SizedBox(width: 50),
-                    Expanded(child: LoginForm()),
+                    const Expanded(child: LoginForm()),
                   ],
                 )
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset('assets/images/auth_side_card.png',
-                        height: 100),
-                    const SizedBox(height: 20),
-                    LoginForm(),
+                    Image.asset('assets/images/logo.png', height: 250),
+                    const LoginForm(),
                   ],
                 ),
         ),
@@ -167,16 +165,16 @@ class _LoginFormState extends State<LoginForm> {
           if (_errorMessage != null)
             Text(
               _errorMessage!,
-              style: TextStyle(color: Colors.red),
+              style: const TextStyle(color: Colors.red),
             ),
           const SizedBox(height: 10),
           CustomButton(
+            onPressed: _isLoading ? null : _login,
             child: _isLoading
-                ? CircularProgressIndicator(
+                ? const CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   )
-                : Text("Login"),
-            onPressed: _isLoading ? null : _login,
+                : const Text("Login"),
           ),
           const SizedBox(height: 20),
           Center(

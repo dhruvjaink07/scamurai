@@ -22,8 +22,7 @@ class RegisterScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Image.asset('assets/images/auth_side_card.png',
-                          height: 300),
+                      child: Image.asset('assets/images/logo.png', height: 300),
                     ),
                     const SizedBox(width: 50),
                     const Expanded(child: RegisterForm()),
@@ -32,10 +31,9 @@ class RegisterScreen extends StatelessWidget {
               : SingleChildScrollView(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset('assets/images/auth_side_card.png',
-                          height: 200),
-                      const SizedBox(height: 20),
+                      Image.asset('assets/images/logo.png', height: 250),
                       const RegisterForm(),
                     ],
                   ),
@@ -222,16 +220,16 @@ class _RegisterFormState extends State<RegisterForm> {
             if (_errorMessage != null)
               Text(
                 _errorMessage!,
-                style: TextStyle(color: Colors.red),
+                style: const TextStyle(color: Colors.red),
               ),
             const SizedBox(height: 10),
             CustomButton(
+              onPressed: _isLoading ? null : _register,
               child: _isLoading
-                  ? CircularProgressIndicator(
+                  ? const CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     )
-                  : Text("Register"),
-              onPressed: _isLoading ? null : _register,
+                  : const Text("Register"),
             ),
             const SizedBox(height: 20),
             Center(
