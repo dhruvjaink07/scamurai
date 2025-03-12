@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scamurai/data/services/chatbot_service.dart';
 import 'package:scamurai/presentation/widgets/input_field.dart';
 import '../widgets/message_bubble.dart';
 
@@ -9,14 +10,23 @@ class ChatbotScreen extends StatefulWidget {
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<String> _messages = [];
+  final List<Map<String, dynamic>> _messages = [];
+  final ChatbotService _chatbotService = ChatbotService();
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_messageController.text.isNotEmpty) {
+      String userMessage = _messageController.text;
       setState(() {
-        _messages.add(_messageController.text);
+        _messages.add({"message": userMessage, "isSentByUser": true});
         _messageController.clear();
       });
+
+      String? botResponse = await _chatbotService.getChatResponse(userMessage);
+      if (botResponse != null) {
+        setState(() {
+          _messages.add({"message": botResponse, "isSentByUser": false});
+        });
+      }
     }
   }
 
@@ -38,9 +48,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 return MessageBubble(
-                  message: _messages[index],
-                  isSentByUser:
-                      true, // Assuming all messages are sent by the user for now
+                  message: _messages[index]["message"],
+                  isSentByUser: _messages[index]["isSentByUser"],
                 );
               },
             ),
