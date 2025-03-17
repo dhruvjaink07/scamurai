@@ -9,9 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:scamurai/core/app_constants.dart';
 import 'package:scamurai/core/app_routes.dart';
-import 'package:scamurai/presentation/screens/website_verifier_screen.dart';
+import 'package:scamurai/data/services/link_opener_service.dart';
+import 'package:scamurai/state_management/news_controller.dart';
 import 'package:scamurai/state_management/user_controller.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_handler/share_handler.dart';
 import '../widgets/fraud_alert_card.dart';
@@ -33,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<SharedMedia>? _streamSubscription;
   String? _currentScreen; // Track the current screen
   bool _isNavigating = false; // Track if navigation is in progress
+  final NewsController newsController = Get.put(NewsController());
 
   @override
   void initState() {
@@ -269,12 +270,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Recent Scams List
               const Text("🔥 Recent Scam Reports"),
-              ListTile(
-                leading: const Icon(Icons.warning, color: Colors.red),
-                title: const Text("Fake Paytm KYC Verification Scam"),
-                subtitle: const Text("Reported: 2 hours ago"),
-                onTap: () {},
-              ),
+              // Fraud News Section
+              const SizedBox(height: 20),
+              const Text("📰 Latest Fraud News"),
+              const SizedBox(height: 10),
+
+              Obx(() {
+                if (newsController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (newsController.newsList.isEmpty) {
+                  return const Text("No fraud news available at the moment.");
+                }
+
+                return Column(
+                  children: newsController.newsList.map((article) {
+                    return ListTile(
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          article.imageUrl,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.error),
+                        ),
+                      ),
+                      title: Text(article.title,
+                          maxLines: 2, overflow: TextOverflow.ellipsis),
+                      subtitle: Text(article.source),
+                      onTap: () => LinkOpenerService()
+                          .openLinkWithBrowserChooser(
+                              article.url, AppConstant.OPENING_BROWSER),
+                    );
+                  }).toList(),
+                );
+              }),
+
               ListTile(
                 leading: const Icon(Icons.warning, color: Colors.red),
                 title: const Text("WhatsApp Loan Fraud"),
