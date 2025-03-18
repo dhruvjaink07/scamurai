@@ -12,6 +12,7 @@ import 'package:scamurai/core/app_routes.dart';
 import 'package:scamurai/data/services/link_opener_service.dart';
 import 'package:scamurai/state_management/news_controller.dart';
 import 'package:scamurai/state_management/user_controller.dart';
+import 'package:scamurai/state_management/tips_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_handler/share_handler.dart';
 import '../widgets/fraud_alert_card.dart';
@@ -34,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _currentScreen; // Track the current screen
   bool _isNavigating = false; // Track if navigation is in progress
   final NewsController newsController = Get.put(NewsController());
+  final TipsController tipsController = Get.put(TipsController());
+  int? _expandedIndex; // Track the currently expanded tile index
 
   @override
   void initState() {
@@ -152,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Opens the Default Apps settings to allow the user to set this app as the default browser
   void _openDefaultAppSettings() {
     if (Platform.isAndroid) {
-      final intent = AndroidIntent(
+      final intent = const AndroidIntent(
         action: 'android.settings.MANAGE_DEFAULT_APPS_SETTINGS',
         flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
       );
@@ -247,31 +250,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   QuickActionButton(
                     icon: Icons.message,
-                    label: "Verify Message",
+                    label: "Verify Text",
                     onClick: detectScamInText,
-                  ),
-                  QuickActionButton(
-                    icon: Icons.book,
-                    label: "Learn More",
-                    onClick: verifyWebsite,
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
 
-              // Learning Hub
-              const Text("📚 Fraud Prevention Tips"),
-              const SizedBox(height: 10),
-              const LearningCard(title: "How to spot phishing emails?"),
-              const LearningCard(title: "Best security practices for banking"),
-
-              const SizedBox(height: 20),
-
-              // Recent Scams List
-              const Text("🔥 Recent Scam Reports"),
-              // Fraud News Section
-              const SizedBox(height: 20),
               const Text("📰 Latest Fraud News"),
               const SizedBox(height: 10),
 
@@ -284,28 +269,97 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const Text("No fraud news available at the moment.");
                 }
 
+                final topNews = newsController.newsList.take(5).toList();
+
                 return Column(
-                  children: newsController.newsList.map((article) {
-                    return ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          article.imageUrl,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.error),
+                  children: [
+                    ...topNews.map((article) {
+                      return ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            article.imageUrl,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                    width: 80,
+                                    height: 80,
+                                    color: Colors.grey[200],
+                                    child: Center(
+                                        child: Icon(
+                                      Icons.error,
+                                      color: Theme.of(context).cardColor,
+                                    ))),
+                          ),
                         ),
+                        title: Text(article.title,
+                            maxLines: 2, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(article.source),
+                        onTap: () => LinkOpenerService()
+                            .openLinkWithBrowserChooser(
+                                article.url, AppConstant.OPENING_BROWSER),
+                      );
+                    }),
+                    TextButton(
+                      onPressed: () {
+                        Get.toNamed(AppRoutes.newsListScreen);
+                      },
+                      child: const Text("See More"),
+                    ),
+                  ],
+                );
+              }),
+
+              const SizedBox(height: 20),
+
+              // Learning Hub
+              const Text("📚 Fraud Prevention Tips"),
+              const SizedBox(height: 10),
+              Obx(() {
+                if (tipsController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (tipsController.tipsList.isEmpty) {
+                  return const Text("No fraud prevention tips available.");
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: tipsController.tipsList.length,
+                  itemBuilder: (context, index) {
+                    final tip = tipsController.tipsList[index];
+                    return Card(
+                      child: ExpansionTile(
+                        key: Key(index.toString()), // Unique key for each tile
+                        leading: const Icon(Icons.book, color: Colors.blue),
+                        title: Text(
+                          tip['title'] ??
+                              'No Title', // Fallback to 'No Title' if null
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        initiallyExpanded: _expandedIndex == index,
+                        onExpansionChanged: (isExpanded) {
+                          setState(() {
+                            _expandedIndex = isExpanded ? index : null;
+                          });
+                        },
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              tip['description'] ??
+                                  'No Description', // Fallback to 'No Description' if null
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                        ],
                       ),
-                      title: Text(article.title,
-                          maxLines: 2, overflow: TextOverflow.ellipsis),
-                      subtitle: Text(article.source),
-                      onTap: () => LinkOpenerService()
-                          .openLinkWithBrowserChooser(
-                              article.url, AppConstant.OPENING_BROWSER),
                     );
-                  }).toList(),
+                  },
                 );
               }),
 

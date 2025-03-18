@@ -4,6 +4,8 @@ import 'package:scamurai/presentation/screens/auth/profile_setup_screen.dart';
 import 'package:scamurai/presentation/screens/auth/register_screen.dart';
 import 'package:scamurai/presentation/screens/chatbot_screen.dart';
 import 'package:scamurai/presentation/screens/home_screen.dart';
+import 'package:scamurai/presentation/screens/news_list_screen.dart';
+import 'package:scamurai/presentation/screens/tips_details_screen.dart';
 import 'package:scamurai/presentation/screens/profile_screen.dart';
 import 'package:scamurai/presentation/screens/reports_screen.dart';
 import 'package:scamurai/presentation/screens/scam_detection_screen.dart';
@@ -22,6 +24,9 @@ class AppRoutes {
   static const String reportScamScreen = '/report-scam';
   static const String scamDetectionScreen = '/scam-detect';
   static const String chatbotScreen = '/chatbot';
+  static const tipDetailsScreen = '/tip-details';
+  static const String newsListScreen = '/news-list';
+
   static final List<GetPage> routes = [
     GetPage(name: loginScreen, page: () => const LoginScreen()),
     GetPage(name: registerScreen, page: () => const RegisterScreen()),
@@ -32,6 +37,8 @@ class AppRoutes {
     GetPage(name: verifyWebsiteScreen, page: () => VerifyWebsiteScreen()),
     GetPage(name: reportScamScreen, page: () => const ReportScamScreen()),
     GetPage(name: scamDetectionScreen, page: () => ScamDetectionScreen()),
-    GetPage(name: chatbotScreen, page: () => ChatbotScreen())
+    GetPage(name: chatbotScreen, page: () => ChatbotScreen()),
+    GetPage(name: tipDetailsScreen, page: () => TipDetailsScreen()),
+    GetPage(name: newsListScreen, page: () => NewsListScreen())
   ];
 }
