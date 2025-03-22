@@ -19,6 +19,7 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
   final ScamDetectionService _scamDetectionService = ScamDetectionService();
   bool _isLoading = false;
   String? _verificationResult;
+  Map<String, dynamic>? _apiResponse;
 
   void _verifyWebsite() async {
     final url = _urlController.text.trim();
@@ -82,6 +83,9 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
             },
           );
         }
+
+        // Store the full API response
+        _apiResponse = response;
       } else {
         _verificationResult = "Failed to verify the website. Please try again.";
       }
@@ -167,6 +171,42 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
                       ? Colors.green
                       : Colors.red,
                 ),
+              ),
+            const SizedBox(height: 20),
+            if (_apiResponse != null)
+              ExpansionTile(
+                title: const Text(
+                  "Detailed Response",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _apiResponse!.entries
+                          .where((entry) => entry.key != "url") // Exclude "url"
+                          .map((entry) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${entry.key}: ",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Expanded(
+                                      child: Text(entry.value.toString()),
+                                    ),
+                                  ],
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ],
               ),
           ],
         ),

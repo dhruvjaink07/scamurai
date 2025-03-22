@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:scamurai/data/services/link_opener_service.dart';
@@ -31,27 +33,44 @@ class NewsListScreen extends StatelessWidget {
               return ListTile(
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    article.imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: article.imageUrl,
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                        width: 80,
-                        height: 80,
-                        color: Colors.grey[200],
-                        child: Center(
-                            child: Icon(
+                    placeholder: (context, url) => Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: CupertinoActivityIndicator(
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(
                           Icons.error,
-                          color: Theme.of(context).cardColor,
-                        ))),
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                title: Text(article.title,
-                    maxLines: 2, overflow: TextOverflow.ellipsis),
+                title: Text(
+                  article.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 subtitle: Text(article.source),
                 onTap: () => LinkOpenerService().openLinkWithBrowserChooser(
-                    article.url, AppConstant.OPENING_BROWSER),
+                  article.url,
+                  AppConstant.OPENING_BROWSER,
+                ),
               );
             },
           );

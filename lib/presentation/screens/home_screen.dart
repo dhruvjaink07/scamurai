@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
 import 'package:appwrite/models.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:scamurai/core/app_constants.dart';
 import 'package:scamurai/core/app_routes.dart';
@@ -16,9 +14,8 @@ import 'package:scamurai/state_management/user_controller.dart';
 import 'package:scamurai/state_management/tips_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_handler/share_handler.dart';
-import '../widgets/fraud_alert_card.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/quick_action_button.dart';
-import '../widgets/learning_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -205,21 +202,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 10),
 
-              // Fraud Alerts Section
-              const Text("🚨 Latest Scam Alerts"),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 150,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    FraudAlertCard(title: "Phishing Attack Detected"),
-                    FraudAlertCard(title: "Fake UPI Payment Alert"),
-                  ],
-                ),
-              ),
+              // // Fraud Alerts Section
+              // const Text("🚨 Latest Scam Alerts"),
+              // const SizedBox(height: 10),
+              // SizedBox(
+              //   height: 150,
+              //   child: ListView(
+              //     scrollDirection: Axis.horizontal,
+              //     children: const [
+              //       FraudAlertCard(title: "Phishing Attack Detected"),
+              //       FraudAlertCard(title: "Fake UPI Payment Alert"),
+              //     ],
+              //   ),
+              // ),
 
-              const SizedBox(height: 20),
+              // const SizedBox(height: 20),
 
               // Quick Actions
               const Text("⚡ Quick Actions"),
@@ -267,21 +264,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       return ListTile(
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            article.imageUrl,
+                          child: CachedNetworkImage(
+                            imageUrl: article.imageUrl,
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                                    width: 80,
-                                    height: 80,
-                                    color: Colors.grey[200],
-                                    child: Center(
-                                        child: Icon(
-                                      Icons.error,
-                                      color: Theme.of(context).cardColor,
-                                    ))),
+                            placeholder: (context, url) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: CupertinoActivityIndicator(
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.error,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                         title: Text(article.title,
