@@ -11,6 +11,7 @@ analyzer:
   errors:
     library_private_types_in_public_api: ignore
     empty_catches: ignore
+    constant_identifier_names: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
