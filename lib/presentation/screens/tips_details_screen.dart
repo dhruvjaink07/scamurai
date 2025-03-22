@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:scamurai/core/app_routes.dart';
 import 'package:scamurai/state_management/tips_controller.dart';
-import 'package:scamurai/presentation/widgets/learning_card.dart';
 
 class TipDetailsScreen extends StatelessWidget {
   final TipsController tipsController = Get.find<TipsController>();
+
+  TipDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

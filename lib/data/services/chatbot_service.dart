@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:scamurai/core/api_endpoints.dart';
+import 'package:scamurai/core/app_constants.dart';
 
 class ChatbotService {
   final Dio _dio = Dio();
@@ -7,7 +7,7 @@ class ChatbotService {
   Future<String?> getChatResponse(String prompt) async {
     try {
       final response = await _dio.post(
-          "${APIENDPOINTS.BASE_URL}/finance/chat-bot",
+          "${AppConstant.BASE_URL}/finance/chat-bot",
           data: {"prompt": prompt});
       String message = response.data['message'];
       return message;

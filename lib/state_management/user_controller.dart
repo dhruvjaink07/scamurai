@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scamurai/data/services/auth_service.dart';

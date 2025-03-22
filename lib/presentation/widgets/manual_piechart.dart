@@ -5,8 +5,7 @@ class ManualPieChart extends StatefulWidget {
   final Map<String, double> data;
   final List<Color> colors;
 
-  const ManualPieChart({required this.data, required this.colors, Key? key})
-      : super(key: key);
+  const ManualPieChart({super.key, required this.data, required this.colors});
 
   @override
   _ManualPieChartState createState() => _ManualPieChartState();

@@ -15,8 +15,8 @@ class ProfileScreen extends StatelessWidget {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
-      final UserController _userController = Get.find<UserController>();
-      final user = _userController.getUser();
+      final UserController userController = Get.find<UserController>();
+      final user = userController.getUser();
       if (user != null) {
         if (kIsWeb) {
           Uint8List webImage = await image.readAsBytes();
@@ -26,15 +26,15 @@ class ProfileScreen extends StatelessWidget {
           await AppwriteService().uploadProfileImage(user.$id, image.path);
         }
         // Fetch updated user profile data
-        await _userController.fetchUserProfile(user.$id);
+        await userController.fetchUserProfile(user.$id);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final UserController _userController = Get.find<UserController>();
-    final userProfile = _userController.getUserProfile();
+    final UserController userController = Get.find<UserController>();
+    userController.getUserProfile();
 
     return Scaffold(
       appBar: AppBar(
@@ -52,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
       body: Obx(() {
-        final userProfile = _userController.getUserProfile();
+        final userProfile = userController.getUserProfile();
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: userProfile == null

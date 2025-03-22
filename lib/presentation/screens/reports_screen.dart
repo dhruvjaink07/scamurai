@@ -49,8 +49,8 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
 
       final formattedDate = _formatDate(_scamDateController.text);
       final reportService = AppwriteReportService();
-      final UserController _userController = Get.find<UserController>();
-      final user = _userController.getUser();
+      final UserController userController = Get.find<UserController>();
+      final user = userController.getUser();
       await reportService.saveReports(
         userId: user?.$id ?? '',
         scamType: scamType!,

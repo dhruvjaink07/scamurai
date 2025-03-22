@@ -31,8 +31,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   void initState() {
     super.initState();
-    final UserController _userController = Get.find<UserController>();
-    final userProfile = _userController.getUserProfile();
+    final UserController userController = Get.find<UserController>();
+    final userProfile = userController.getUserProfile();
     if (Get.arguments != null && Get.arguments['update'] == true) {
       isUpdateMode = true;
       if (userProfile != null) {
@@ -47,8 +47,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   void submitProfileData() async {
-    final UserController _userController = Get.find<UserController>();
-    final user = _userController.getUser();
+    final UserController userController = Get.find<UserController>();
+    final user = userController.getUser();
 
     if (phoneController.text.isEmpty ||
         dobController.text.isEmpty ||
@@ -91,8 +91,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final UserController _userController = Get.find<UserController>();
-    final user = _userController.getUser();
+    final UserController userController = Get.find<UserController>();
+    final user = userController.getUser();
 
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColorDark,

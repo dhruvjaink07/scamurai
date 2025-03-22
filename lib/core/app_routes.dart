@@ -34,10 +34,10 @@ class AppRoutes {
     GetPage(name: homeScreen, page: () => const HomeScreen()),
     GetPage(name: profileScreen, page: () => const ProfileScreen()),
     GetPage(name: splashScreen, page: () => const SplashScreen()),
-    GetPage(name: verifyWebsiteScreen, page: () => VerifyWebsiteScreen()),
+    GetPage(name: verifyWebsiteScreen, page: () => const VerifyWebsiteScreen()),
     GetPage(name: reportScamScreen, page: () => const ReportScamScreen()),
-    GetPage(name: scamDetectionScreen, page: () => ScamDetectionScreen()),
-    GetPage(name: chatbotScreen, page: () => ChatbotScreen()),
+    GetPage(name: scamDetectionScreen, page: () => const ScamDetectionScreen()),
+    GetPage(name: chatbotScreen, page: () => const ChatbotScreen()),
     GetPage(name: tipDetailsScreen, page: () => TipDetailsScreen()),
     GetPage(name: newsListScreen, page: () => NewsListScreen())
   ];

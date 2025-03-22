@@ -42,8 +42,8 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
     setState(() {
       _isLoading = false;
       if (response != null) {
-        final UserController _userController = Get.find<UserController>();
-        final user = _userController.getUser();
+        final UserController userController = Get.find<UserController>();
+        final user = userController.getUser();
         if (response["prediction"] == "LEGITIMATE") {
           _verificationResult = "This website is safe.";
 
@@ -128,13 +128,13 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
           PopupMenuButton(itemBuilder: (BuildContext context) {
             return [
               PopupMenuItem(
-                child: Text("Change default browser"),
+                child: const Text("Change default browser"),
                 onTap: () {
                   DefaultAppSettingsService().openDefaultAppSettings();
                 },
               ),
               PopupMenuItem(
-                child: Text("Paste"),
+                child: const Text("Paste"),
                 onTap: () async {
                   final clipboardData =
                       await Clipboard.getData(Clipboard.kTextPlain);

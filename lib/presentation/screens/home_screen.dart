@@ -30,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
   static const defaultBrowserChannel =
       MethodChannel(AppConstant.BROWSER_CHANNEL);
 
-  bool _isDefaultBrowser = false;
   StreamSubscription<SharedMedia>? _streamSubscription;
   String? _currentScreen; // Track the current screen
   bool _isNavigating = false; // Track if navigation is in progress
@@ -112,9 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!hasPrompted) {
         final bool result =
             await defaultBrowserChannel.invokeMethod("isDefaultBrowser");
-        setState(() {
-          _isDefaultBrowser = result;
-        });
+        setState(() {});
 
         if (!result) {
           _showDefaultBrowserPrompt();
@@ -123,9 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Set the flag to true after showing the prompt
         await prefs.setBool('hasPromptedDefaultBrowser', true);
       }
-    } on PlatformException catch (e) {
-      print("Failed to check default browser: ${e.message}");
-    }
+    } on PlatformException {}
   }
 
   /// Shows a dialog prompting the user to set this app as the default browser
@@ -180,13 +175,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final UserController _userController = Get.find<UserController>();
-    final user = _userController.getUser();
+    final UserController userController = Get.find<UserController>();
+    final user = userController.getUser();
     bool isWeb = MediaQuery.of(context).size.width > 600;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (user != null) {
-        _userController.fetchUserProfile(user.$id);
+        userController.fetchUserProfile(user.$id);
       }
     });
 
@@ -227,10 +222,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ManualPieChart(
                         data: {
                           'Phishy': _statistics["phishyCount"]?.toDouble() ?? 0,
-                          'Not Phishy':
+                          'Legitimate':
                               _statistics["notPhishyCount"]?.toDouble() ?? 0,
                         },
-                        colors: [Colors.red, Colors.green],
+                        colors: const [Colors.red, Colors.green],
                       ),
                     ),
               const SizedBox(height: 20),

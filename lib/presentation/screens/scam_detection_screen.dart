@@ -7,6 +7,8 @@ import 'package:scamurai/state_management/user_controller.dart';
 import 'package:share_handler/share_handler.dart';
 
 class ScamDetectionScreen extends StatefulWidget {
+  const ScamDetectionScreen({super.key});
+
   @override
   _ScamDetectionScreenState createState() => _ScamDetectionScreenState();
 }
@@ -14,7 +16,7 @@ class ScamDetectionScreen extends StatefulWidget {
 class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
   final ScamDetectionService _scamDetectionService = ScamDetectionService();
   StreamSubscription<SharedMedia>? _streamSubscription;
-  TextEditingController _messageController = TextEditingController();
+  TextEditingController messageController = TextEditingController();
   String? sharedText;
   Map<String, dynamic>? _apiResponse; // To store the API response
   bool _isLoading = false; // To track loading state
@@ -33,7 +35,7 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
     if (initialMedia?.content != null) {
       setState(() {
         sharedText = initialMedia!.content;
-        _messageController.text = sharedText!;
+        messageController.text = sharedText!;
       });
     }
 
@@ -43,7 +45,7 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
       if (media.content != null) {
         setState(() {
           sharedText = media.content;
-          _messageController.text = sharedText!;
+          messageController.text = sharedText!;
         });
       }
     });
@@ -53,13 +55,13 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
     if (sharedContent != null) {
       setState(() {
         sharedText = sharedContent;
-        _messageController.text = sharedText!;
+        messageController.text = sharedText!;
       });
     }
   }
 
   void _verifyMessage() async {
-    final message = _messageController.text.trim();
+    final message = messageController.text.trim();
     if (message.isEmpty) {
       Get.snackbar("Error", "Please enter a message to verify.");
       return;
@@ -77,8 +79,8 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
       if (response != null) {
         _apiResponse = response;
 
-        final UserController _userController = Get.find<UserController>();
-        final userId = _userController.getUser()?.$id;
+        final UserController userController = Get.find<UserController>();
+        final userId = userController.getUser()?.$id;
         // Replace with the correct user ID property
         if (userId != null) {
           AppwriteService().updateUserStatistics(
@@ -96,7 +98,7 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
   @override
   void dispose() {
     _streamSubscription?.cancel(); // Cleanup
-    _messageController.dispose();
+    messageController.dispose();
     super.dispose();
   }
 
@@ -114,7 +116,7 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               TextField(
-                controller: _messageController,
+                controller: messageController,
                 maxLines: 5,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),

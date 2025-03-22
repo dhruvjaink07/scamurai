@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:scamurai/core/app_routes.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 import 'package:scamurai/theme.dart';
-import 'package:scamurai/presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

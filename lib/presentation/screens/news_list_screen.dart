@@ -8,7 +8,7 @@ import 'package:scamurai/core/app_constants.dart';
 
 class NewsListScreen extends StatelessWidget {
   final NewsController newsController = Get.find<NewsController>();
-
+  NewsListScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(

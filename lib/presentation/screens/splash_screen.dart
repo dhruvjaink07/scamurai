@@ -58,12 +58,11 @@ class _SplashScreenState extends State<SplashScreen>
       body: Center(
         child: FadeTransition(
           opacity: _animation,
-          child: Column(
+          child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Image.asset('assets/images/logo.png', height: 100),
-              const SizedBox(height: 20),
-              const Text(
+              SizedBox(height: 20),
+              Text(
                 'Scamurai',
                 style: TextStyle(
                   fontSize: 32,

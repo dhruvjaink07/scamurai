@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:scamurai/core/api_endpoints.dart';
+import 'package:scamurai/core/app_constants.dart';
 
 class ScamDetectionService {
-  final String _baseUrl = "${APIENDPOINTS.BASE_URL}/phishing/predict";
+  final String _baseUrl = "${AppConstant.BASE_URL}/phishing/predict";
   final Dio _dio = Dio();
 
   Future<Map<String, dynamic>?> detectScam(String url) async {
