@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:scamurai/core/app_constants.dart';
-import 'package:scamurai/data/services/link_opener_service.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:scamurai/core/app_constants.dart';
+import 'package:scamurai/data/services/default_app_settings_service.dart';
+import 'package:scamurai/data/services/phishing_detection_service.dart';
+import 'package:scamurai/data/services/link_opener_service.dart';
 
 class VerifyWebsiteScreen extends StatefulWidget {
   final String? receivedLink;
-  VerifyWebsiteScreen({super.key, this.receivedLink});
+  const VerifyWebsiteScreen({super.key, this.receivedLink});
 
   @override
   _VerifyWebsiteScreenState createState() => _VerifyWebsiteScreenState();
@@ -13,26 +16,45 @@ class VerifyWebsiteScreen extends StatefulWidget {
 
 class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
   final TextEditingController _urlController = TextEditingController();
+  final ScamDetectionService _scamDetectionService = ScamDetectionService();
   bool _isLoading = false;
   String? _verificationResult;
 
   void _verifyWebsite() async {
+    final url = _urlController.text.trim();
+    if (url.isEmpty) {
+      setState(() {
+        _verificationResult = "Please enter a valid URL.";
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _verificationResult = null;
     });
 
-    // Simulate a delay for the verification process
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Implement your website verification logic here
-    // For demonstration purposes, we'll assume that any URL containing "safe" is safe
-    final url = _urlController.text;
-    LinkOpenerService()
-        .openLinkWithBrowserChooser(url, AppConstant.OPENING_BROWSER);
+    final response = await _scamDetectionService.detectScam(url);
 
     setState(() {
       _isLoading = false;
+      if (response != null) {
+        if (response["prediction"] == "LEGITIMATE") {
+          _verificationResult = "This website is safe.";
+
+          // Open the website in the browser after 3 seconds
+          Future.delayed(const Duration(seconds: 3), () {
+            LinkOpenerService().openLinkWithBrowserChooser(
+              url,
+              AppConstant.OPENING_BROWSER,
+            );
+          });
+        } else {
+          _verificationResult = "This website might be a scam.";
+        }
+      } else {
+        _verificationResult = "Failed to verify the website. Please try again.";
+      }
     });
   }
 
@@ -56,6 +78,28 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Verify Website"),
+        actions: [
+          PopupMenuButton(itemBuilder: (BuildContext context) {
+            return [
+              PopupMenuItem(
+                child: Text("Change default browser"),
+                onTap: () {
+                  DefaultAppSettingsService().openDefaultAppSettings();
+                },
+              ),
+              PopupMenuItem(
+                child: Text("Paste"),
+                onTap: () async {
+                  final clipboardData =
+                      await Clipboard.getData(Clipboard.kTextPlain);
+                  if (clipboardData != null && clipboardData.text != null) {
+                    _urlController.text = clipboardData.text!;
+                  }
+                },
+              ),
+            ];
+          })
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

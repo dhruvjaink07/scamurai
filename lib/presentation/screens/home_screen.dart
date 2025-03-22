@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:scamurai/core/app_constants.dart';
 import 'package:scamurai/core/app_routes.dart';
+import 'package:scamurai/data/services/default_app_settings_service.dart';
 import 'package:scamurai/data/services/link_opener_service.dart';
 import 'package:scamurai/state_management/news_controller.dart';
 import 'package:scamurai/state_management/user_controller.dart';
@@ -142,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                _openDefaultAppSettings();
+                DefaultAppSettingsService().openDefaultAppSettings();
               },
               child: const Text("Set Now"),
             ),
@@ -150,17 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     });
-  }
-
-  /// Opens the Default Apps settings to allow the user to set this app as the default browser
-  void _openDefaultAppSettings() {
-    if (Platform.isAndroid) {
-      final intent = const AndroidIntent(
-        action: 'android.settings.MANAGE_DEFAULT_APPS_SETTINGS',
-        flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-      );
-      intent.launch();
-    }
   }
 
   void verifyWebsite() {
@@ -362,13 +352,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 );
               }),
-
-              ListTile(
-                leading: const Icon(Icons.warning, color: Colors.red),
-                title: const Text("WhatsApp Loan Fraud"),
-                subtitle: const Text("Reported: 1 day ago"),
-                onTap: () {},
-              ),
             ],
           ),
         ),
