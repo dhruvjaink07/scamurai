@@ -135,4 +135,101 @@ class AppwriteService {
       print("Error updating user document: $e");
     }
   }
+
+  // Method to initialize statistics for a user
+  Future<void> initializeUserStatistics(String userId) async {
+    try {
+      String databaseId = AppConstant.DATABASE_ID;
+      String userCollectionId = AppConstant.USER_COLLECTION_ID;
+
+      // Fetch the user document
+      final document = await database.getDocument(
+        databaseId: databaseId,
+        collectionId: userCollectionId,
+        documentId: userId,
+      );
+
+      // Check if statistics fields exist, if not, initialize them
+      if (!document.data.containsKey("phishyCount") ||
+          !document.data.containsKey("notPhishyCount")) {
+        await database.updateDocument(
+          databaseId: databaseId,
+          collectionId: userCollectionId,
+          documentId: userId,
+          data: {
+            "phishyCount": 0,
+            "notPhishyCount": 0,
+          },
+        );
+        print("User statistics initialized successfully.");
+      }
+    } catch (e) {
+      print("Error initializing user statistics: $e");
+    }
+  }
+
+  // Method to update user-specific statistics
+  Future<void> updateUserStatistics({
+    required String userId,
+    required bool isPhishy,
+  }) async {
+    try {
+      String databaseId = AppConstant.DATABASE_ID;
+      String userCollectionId = AppConstant.USER_COLLECTION_ID;
+
+      // Fetch the current statistics
+      final document = await database.getDocument(
+        databaseId: databaseId,
+        collectionId: userCollectionId,
+        documentId: userId,
+      );
+
+      int phishyCount = document.data["phishyCount"] ?? 0;
+      int notPhishyCount = document.data["notPhishyCount"] ?? 0;
+
+      // Update the count based on the result
+      if (isPhishy) {
+        phishyCount++;
+      } else {
+        notPhishyCount++;
+      }
+
+      // Update the document in the database
+      await database.updateDocument(
+        databaseId: databaseId,
+        collectionId: userCollectionId,
+        documentId: userId,
+        data: {
+          "phishyCount": phishyCount,
+          "notPhishyCount": notPhishyCount,
+        },
+      );
+
+      print("User statistics updated successfully.");
+    } catch (e) {
+      print("Error updating user statistics: $e");
+    }
+  }
+
+  // Method to retrieve user-specific statistics
+  Future<Map<String, int>> getUserStatistics(String userId) async {
+    try {
+      String databaseId = AppConstant.DATABASE_ID;
+      String userCollectionId = AppConstant.USER_COLLECTION_ID;
+
+      final document = await database.getDocument(
+        databaseId: databaseId,
+        collectionId: userCollectionId,
+        documentId: userId,
+      );
+
+      return {
+        "phishyCount": document.data["phishyCount"] ?? 0,
+        "notPhishyCount": document.data["notPhishyCount"] ?? 0,
+      };
+    } catch (e) {
+      print("Error retrieving user statistics: $e");
+      return {"phishyCount": 0, "notPhishyCount": 0};
+    }
+  }
 }

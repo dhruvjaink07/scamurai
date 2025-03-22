@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:scamurai/data/services/appwrite_report_service.dart';
+import 'package:scamurai/state_management/user_controller.dart';
 import '../widgets/custom_date_picker.dart';
 import '../widgets/input_field.dart';
 
@@ -48,9 +49,10 @@ class _ReportScamScreenState extends State<ReportScamScreen> {
 
       final formattedDate = _formatDate(_scamDateController.text);
       final reportService = AppwriteReportService();
-
+      final UserController _userController = Get.find<UserController>();
+      final user = _userController.getUser();
       await reportService.saveReports(
-        userId: "user-id", // Replace with actual user ID
+        userId: user?.$id ?? '',
         scamType: scamType!,
         description: _descriptionController.text,
         contact: _contactInfoController.text,

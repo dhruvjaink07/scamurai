@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:scamurai/core/app_constants.dart';
+import 'package:scamurai/data/services/appwrite_user_service.dart';
 import 'package:scamurai/data/services/default_app_settings_service.dart';
 import 'package:scamurai/data/services/phishing_detection_service.dart';
 import 'package:scamurai/data/services/link_opener_service.dart';
+import 'package:scamurai/state_management/user_controller.dart';
 
 class VerifyWebsiteScreen extends StatefulWidget {
   final String? receivedLink;
@@ -40,8 +42,14 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
     setState(() {
       _isLoading = false;
       if (response != null) {
+        final UserController _userController = Get.find<UserController>();
+        final user = _userController.getUser();
         if (response["prediction"] == "LEGITIMATE") {
           _verificationResult = "This website is safe.";
+
+          // Update user-specific statistics for not phishy URLs
+          AppwriteService()
+              .updateUserStatistics(userId: user?.$id ?? '', isPhishy: false);
 
           // Open the website in the browser after 3 seconds
           Future.delayed(const Duration(seconds: 3), () {
@@ -52,6 +60,10 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
           });
         } else {
           _verificationResult = "This website might be a scam.";
+
+          // Update user-specific statistics for phishy URLs
+          AppwriteService()
+              .updateUserStatistics(userId: user?.$id ?? '', isPhishy: true);
 
           // Show alert dialog for phishy websites
           showDialog(
@@ -137,78 +149,82 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Enter the website URL to verify:",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _urlController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "https://example.com",
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Enter the website URL to verify:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _verifyWebsite,
-              child: _isLoading
-                  ? const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    )
-                  : const Text("Verify"),
-            ),
-            const SizedBox(height: 20),
-            if (_verificationResult != null)
-              Text(
-                _verificationResult!,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: _verificationResult == "This website is safe."
-                      ? Colors.green
-                      : Colors.red,
+              const SizedBox(height: 10),
+              TextField(
+                controller: _urlController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: "https://example.com",
                 ),
               ),
-            const SizedBox(height: 20),
-            if (_apiResponse != null)
-              ExpansionTile(
-                title: const Text(
-                  "Detailed Response",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _apiResponse!.entries
-                          .where((entry) => entry.key != "url") // Exclude "url"
-                          .map((entry) => Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 4.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "${entry.key}: ",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Expanded(
-                                      child: Text(entry.value.toString()),
-                                    ),
-                                  ],
-                                ),
-                              ))
-                          .toList(),
-                    ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _verifyWebsite,
+                child: _isLoading
+                    ? const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                    : const Text("Verify"),
+              ),
+              const SizedBox(height: 20),
+              if (_verificationResult != null)
+                Text(
+                  _verificationResult!,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _verificationResult == "This website is safe."
+                        ? Colors.green
+                        : Colors.red,
                   ),
-                ],
-              ),
-          ],
+                ),
+              const SizedBox(height: 20),
+              if (_apiResponse != null)
+                ExpansionTile(
+                  title: const Text(
+                    "Detailed Response",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: _apiResponse!.entries
+                            .where(
+                                (entry) => entry.key != "url") // Exclude "url"
+                            .map((entry) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${entry.key}: ",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Expanded(
+                                        child: Text(entry.value.toString()),
+                                      ),
+                                    ],
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );

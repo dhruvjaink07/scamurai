@@ -7,8 +7,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:scamurai/core/app_constants.dart';
 import 'package:scamurai/core/app_routes.dart';
+import 'package:scamurai/data/services/appwrite_user_service.dart';
 import 'package:scamurai/data/services/default_app_settings_service.dart';
 import 'package:scamurai/data/services/link_opener_service.dart';
+import 'package:scamurai/presentation/widgets/manual_piechart.dart';
 import 'package:scamurai/state_management/news_controller.dart';
 import 'package:scamurai/state_management/user_controller.dart';
 import 'package:scamurai/state_management/tips_controller.dart';
@@ -35,12 +37,15 @@ class _HomeScreenState extends State<HomeScreen> {
   final NewsController newsController = Get.put(NewsController());
   final TipsController tipsController = Get.put(TipsController());
   int? _expandedIndex; // Track the currently expanded tile index
+  Map<String, int> _statistics = {"phishyCount": 0, "notPhishyCount": 0};
+  bool _isLoadingStatistics = true;
 
   @override
   void initState() {
     super.initState();
     _checkIfDefaultBrowser();
     _handleSharedData();
+    _fetchStatistics();
   }
 
   Future<void> _handleSharedData() async {
@@ -162,6 +167,17 @@ class _HomeScreenState extends State<HomeScreen> {
     Get.toNamed(AppRoutes.scamDetectionScreen);
   }
 
+  Future<void> _fetchStatistics() async {
+    final userId = Get.find<UserController>().getUser()?.$id;
+    if (userId != null) {
+      final stats = await AppwriteService().getUserStatistics(userId);
+      setState(() {
+        _statistics = stats;
+        _isLoadingStatistics = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final UserController _userController = Get.find<UserController>();
@@ -202,21 +218,22 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 10),
 
-              // // Fraud Alerts Section
-              // const Text("🚨 Latest Scam Alerts"),
-              // const SizedBox(height: 10),
-              // SizedBox(
-              //   height: 150,
-              //   child: ListView(
-              //     scrollDirection: Axis.horizontal,
-              //     children: const [
-              //       FraudAlertCard(title: "Phishing Attack Detected"),
-              //       FraudAlertCard(title: "Fake UPI Payment Alert"),
-              //     ],
-              //   ),
-              // ),
-
-              // const SizedBox(height: 20),
+              // Pie Chart Section
+              const Text("📊 Scam Statistics"),
+              const SizedBox(height: 10),
+              _isLoadingStatistics
+                  ? const Center(child: CircularProgressIndicator())
+                  : Center(
+                      child: ManualPieChart(
+                        data: {
+                          'Phishy': _statistics["phishyCount"]?.toDouble() ?? 0,
+                          'Not Phishy':
+                              _statistics["notPhishyCount"]?.toDouble() ?? 0,
+                        },
+                        colors: [Colors.red, Colors.green],
+                      ),
+                    ),
+              const SizedBox(height: 20),
 
               // Quick Actions
               const Text("⚡ Quick Actions"),
@@ -372,4 +389,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class ChartData {
+  ChartData(this.label, this.value, this.color);
+  final String label;
+  final double value;
+  final Color color;
 }
