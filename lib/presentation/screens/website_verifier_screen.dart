@@ -51,6 +51,36 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
           });
         } else {
           _verificationResult = "This website might be a scam.";
+
+          // Show alert dialog for phishy websites
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text("Warning: Phishy Website"),
+                content: const Text(
+                    "This website might be a scam. Are you sure you want to open it?"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                    },
+                    child: const Text("Go Back"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                      LinkOpenerService().openLinkWithBrowserChooser(
+                        url,
+                        AppConstant.OPENING_BROWSER,
+                      );
+                    },
+                    child: const Text("Open Anyway"),
+                  ),
+                ],
+              );
+            },
+          );
         }
       } else {
         _verificationResult = "Failed to verify the website. Please try again.";

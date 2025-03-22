@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:scamurai/data/services/phishing_detection_service.dart';
 import 'package:share_handler/share_handler.dart';
 
 class ScamDetectionScreen extends StatefulWidget {
@@ -9,9 +10,12 @@ class ScamDetectionScreen extends StatefulWidget {
 }
 
 class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
+  final ScamDetectionService _scamDetectionService = ScamDetectionService();
   StreamSubscription<SharedMedia>? _streamSubscription;
   TextEditingController _messageController = TextEditingController();
   String? sharedText;
+  Map<String, dynamic>? _apiResponse; // To store the API response
+  bool _isLoading = false; // To track loading state
 
   @override
   void initState() {
@@ -52,16 +56,36 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
     }
   }
 
+  void _verifyMessage() async {
+    final message = _messageController.text.trim();
+    if (message.isEmpty) {
+      Get.snackbar("Error", "Please enter a message to verify.");
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _apiResponse = null;
+    });
+
+    final response = await _scamDetectionService.detectScam(message);
+
+    setState(() {
+      _isLoading = false;
+      if (response != null) {
+        _apiResponse = response;
+      } else {
+        Get.snackbar(
+            "Error", "Failed to verify the message. Please try again.");
+      }
+    });
+  }
+
   @override
   void dispose() {
     _streamSubscription?.cancel(); // Cleanup
     _messageController.dispose();
     super.dispose();
-  }
-
-  void _verifyMessage() {
-    // Implement your message verification logic here
-    Get.snackbar("Verification", "Message verification logic goes here.");
   }
 
   @override
@@ -86,7 +110,7 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _verifyMessage,
+              onPressed: _isLoading ? null : _verifyMessage,
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
@@ -94,8 +118,72 @@ class _ScamDetectionScreenState extends State<ScamDetectionScreen> {
                     borderRadius: BorderRadius.circular(8)),
                 backgroundColor: Colors.blueAccent,
               ),
-              child: const Text("Verify Message"),
+              child: _isLoading
+                  ? const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    )
+                  : const Text("Verify Message"),
             ),
+            const SizedBox(height: 20),
+            if (_apiResponse != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _apiResponse!["prediction"] == "PHISHING"
+                        ? "This message is Phishy."
+                        : "This message is Not Phishy.",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _apiResponse!["prediction"] == "PHISHING"
+                          ? Colors.red
+                          : Colors.green,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ExpansionTile(
+                    title: const Text(
+                      "Advanced Report",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _apiResponse!.entries
+                              .where((entry) =>
+                                  entry.key != "message" &&
+                                  entry.key != "url" &&
+                                  entry.key !=
+                                      "status") // Exclude "message" and "url"
+                              .map((entry) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 4.0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "${entry.key}: ",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Expanded(
+                                          child: Text(entry.value.toString()),
+                                        ),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
           ],
         ),
       ),
