@@ -19,7 +19,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.0'
+        flutter-version: '3.29.2'
 
     - name: Install Dart SDK 3.5.4
       run: sudo apt-get install dart=3.5.4
