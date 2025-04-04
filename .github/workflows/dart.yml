@@ -19,10 +19,16 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.29.2'
+        flutter-version: '3.24.2'
 
-    - name: Install Dart SDK 3.5.4
-      run: sudo apt-get install dart=3.5.4
+    - name: Install Dart SDK
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https
+        sudo sh -c 'wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -'
+        sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
+        sudo apt-get update
+        sudo apt-get install -y dart
 
     - name: Cache Flutter dependencies
       uses: actions/cache@v3
