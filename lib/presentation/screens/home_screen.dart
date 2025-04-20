@@ -17,6 +17,7 @@ import 'package:scamurai/state_management/tips_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../widgets/quick_action_button.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,6 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
   static const defaultBrowserChannel =
       MethodChannel(AppConstant.BROWSER_CHANNEL);
 
+  final GlobalKey _quickActionsKey = GlobalKey();
+  final GlobalKey _statisticsKey = GlobalKey();
+  final GlobalKey _newsKey = GlobalKey();
+
   StreamSubscription<SharedMedia>? _streamSubscription;
   String? _currentScreen; // Track the current screen
   bool _isNavigating = false; // Track if navigation is in progress
@@ -39,12 +44,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, int> _statistics = {"phishyCount": 0, "notPhishyCount": 0};
   bool _isLoadingStatistics = true;
 
+  List<TargetFocus> _tutorialTargets = [];
+
   @override
   void initState() {
     super.initState();
     _checkIfDefaultBrowser();
     _handleSharedData();
     _fetchStatistics();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _createTutorialTargets();
+    });
   }
 
   Future<void> _handleSharedData() async {
@@ -114,40 +124,41 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {});
 
         if (!result) {
-          _showDefaultBrowserPrompt();
+          await _showDefaultBrowserPrompt(); // Wait for the dialog to finish
         }
 
         // Set the flag to true after showing the prompt
         await prefs.setBool('hasPromptedDefaultBrowser', true);
       }
+
+      // Start the tutorial after the dialog is handled
+      _showTutorial();
     } on PlatformException {}
   }
 
   /// Shows a dialog prompting the user to set this app as the default browser
-  void _showDefaultBrowserPrompt() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Set as Default Browser"),
-          content: const Text(
-              "To enhance the experience, set this app as the default browser."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                DefaultAppSettingsService().openDefaultAppSettings();
-              },
-              child: const Text("Set Now"),
-            ),
-          ],
-        ),
-      );
-    });
+  Future<void> _showDefaultBrowserPrompt() async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Set as Default Browser"),
+        content: const Text(
+            "To enhance the experience, set this app as the default browser."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              DefaultAppSettingsService().openDefaultAppSettings();
+            },
+            child: const Text("Set Now"),
+          ),
+        ],
+      ),
+    );
   }
 
   void verifyWebsite() {
@@ -170,6 +181,107 @@ class _HomeScreenState extends State<HomeScreen> {
         _statistics = stats;
         _isLoadingStatistics = false;
       });
+    }
+  }
+
+  void _createTutorialTargets() {
+    _tutorialTargets = [
+      TargetFocus(
+        identify: "QuickActions",
+        keyTarget: _quickActionsKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: const Column(
+              children: [
+                Text(
+                  "Quick Actions",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Use these buttons to quickly report scams, verify websites, or detect scams in text.",
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "Statistics",
+        keyTarget: _statisticsKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: const Column(
+              children: [
+                Text(
+                  "Scam Statistics",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "View the statistics of scams detected and legitimate reports.",
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: "News",
+        keyTarget: _newsKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: const Column(
+              children: [
+                Text(
+                  "Latest Fraud News",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Stay updated with the latest fraud news and scams.",
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Future<void> _showTutorial() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final bool hasShownTutorial = prefs.getBool('hasShownTutorial') ?? false;
+
+    if (!hasShownTutorial) {
+      TutorialCoachMark(
+        targets: _tutorialTargets,
+        colorShadow: Colors.black,
+        textSkip: "SKIP",
+        paddingFocus: 10,
+        onFinish: () {
+          print("Tutorial finished");
+        },
+        onSkip: () {
+          print("Tutorial skipped");
+          return true; // Explicitly return a boolean value
+        },
+      ).show(context: context);
+
+      // Set the flag to true after showing the tutorial
+      await prefs.setBool('hasShownTutorial', true);
     }
   }
 
@@ -214,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10),
 
               // Pie Chart Section
-              const Text("📊 Scam Statistics"),
+              Text("📊 Scam Statistics", key: _statisticsKey),
               const SizedBox(height: 10),
               if (!_isLoadingStatistics &&
                   (_statistics["phishyCount"]! > 0 ||
@@ -241,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
 
               // Quick Actions
-              const Text("⚡ Quick Actions"),
+              Text("⚡ Quick Actions", key: _quickActionsKey),
               GridView.count(
                 shrinkWrap: true,
                 crossAxisCount: isWeb ? 4 : 2,
@@ -266,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
 
-              const Text("📰 Latest Fraud News"),
+              Text("📰 Latest Fraud News", key: _newsKey),
               const SizedBox(height: 10),
 
               Obx(() {
