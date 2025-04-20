@@ -65,23 +65,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         ),
                         const SizedBox(height: 10),
                         FAQItem(
-                          question: "How can I identify a fake loan offer?",
-                          onTap: () {
-                            _messageController.text =
-                                "How can I identify a fake loan offer?";
-                            _sendMessage();
-                          },
-                        ),
-                        FAQItem(
-                          question:
-                              "I accidentally sent money to a fraudster. Can I get it back?",
-                          onTap: () {
-                            _messageController.text =
-                                "I accidentally sent money to a fraudster. Can I get it back?";
-                            _sendMessage();
-                          },
-                        ),
-                        FAQItem(
                           question:
                               "How do I check if a website is fake or legitimate?",
                           onTap: () {

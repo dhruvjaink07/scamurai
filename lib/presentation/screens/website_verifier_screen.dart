@@ -52,12 +52,12 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
               .updateUserStatistics(userId: user?.$id ?? '', isPhishy: false);
 
           // Open the website in the browser after 3 seconds
-          Future.delayed(const Duration(seconds: 3), () {
-            LinkOpenerService().openLinkWithBrowserChooser(
-              url,
-              AppConstant.OPENING_BROWSER,
-            );
-          });
+          // Future.delayed(const Duration(seconds: 3), () {
+          //   LinkOpenerService().openLinkWithBrowserChooser(
+          //     url,
+          //     AppConstant.OPENING_BROWSER,
+          //   );
+          // });
         } else {
           _verificationResult = "This website might be a scam.";
 
@@ -176,14 +176,31 @@ class _VerifyWebsiteScreenState extends State<VerifyWebsiteScreen> {
               ),
               const SizedBox(height: 20),
               if (_verificationResult != null)
-                Text(
-                  _verificationResult!,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _verificationResult == "This website is safe."
-                        ? Colors.green
-                        : Colors.red,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _verificationResult!,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: _verificationResult == "This website is safe."
+                            ? Colors.green
+                            : Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (_verificationResult == "This website is safe." &&
+                        _apiResponse?["url"] != null)
+                      ElevatedButton(
+                        onPressed: () {
+                          LinkOpenerService().openLinkWithBrowserChooser(
+                            _apiResponse!["url"],
+                            AppConstant.OPENING_BROWSER,
+                          );
+                        },
+                        child: const Text("Open in Browser"),
+                      ),
+                  ],
                 ),
               const SizedBox(height: 20),
               if (_apiResponse != null)

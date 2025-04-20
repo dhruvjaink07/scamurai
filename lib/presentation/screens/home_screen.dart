@@ -216,18 +216,28 @@ class _HomeScreenState extends State<HomeScreen> {
               // Pie Chart Section
               const Text("📊 Scam Statistics"),
               const SizedBox(height: 10),
-              _isLoadingStatistics
-                  ? const Center(child: CircularProgressIndicator())
-                  : Center(
-                      child: ManualPieChart(
-                        data: {
-                          'Phishy': _statistics["phishyCount"]?.toDouble() ?? 0,
-                          'Legitimate':
-                              _statistics["notPhishyCount"]?.toDouble() ?? 0,
-                        },
-                        colors: const [Colors.red, Colors.green],
-                      ),
-                    ),
+              if (!_isLoadingStatistics &&
+                  (_statistics["phishyCount"]! > 0 ||
+                      _statistics["notPhishyCount"]! > 0))
+                Center(
+                  child: ManualPieChart(
+                    data: {
+                      'Phishy': _statistics["phishyCount"]?.toDouble() ?? 0,
+                      'Legitimate':
+                          _statistics["notPhishyCount"]?.toDouble() ?? 0,
+                    },
+                    colors: const [Colors.red, Colors.green],
+                  ),
+                )
+              else if (!_isLoadingStatistics)
+                const Center(
+                  child: Text(
+                    "No data available to display statistics.",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
+              if (_isLoadingStatistics)
+                const Center(child: CircularProgressIndicator()),
               const SizedBox(height: 20),
 
               // Quick Actions

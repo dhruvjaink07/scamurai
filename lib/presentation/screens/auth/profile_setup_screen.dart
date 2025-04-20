@@ -246,16 +246,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Skip Button
-                    if (!isUpdateMode)
-                      Center(
-                        child: TextButton(
-                          onPressed: () => submitProfileData(),
-                          child: const Text("Skip for Now",
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.blue)),
-                        ),
-                      ),
+                    // // Skip Button
+                    // if (!isUpdateMode)
+                    //   Center(
+                    //     child: TextButton(
+                    //       onPressed: () => submitProfileData(),
+                    //       child: const Text("Skip for Now",
+                    //           style:
+                    //               TextStyle(fontSize: 16, color: Colors.blue)),
+                    //     ),
+                    //   ),
                   ],
                 ),
               ),
